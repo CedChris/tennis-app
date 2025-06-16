@@ -1,0 +1,212 @@
+<template>
+  <div>
+    <h2>Liste des matchs</h2>
+    <ul>
+      <li v-for="match in matches" :key="match.id" class="match-card">
+        <template v-if="match.joueur1 && match.joueur2">
+          <div class="players">
+  <strong class="joueur1">{{ getNomJoueur(match, 'joueur1') }}</strong>
+  <span class="vs">vs</span>
+  <strong class="joueur2">{{ getNomJoueur(match, 'joueur2') }}</strong>
+</div>
+         <div class="score">
+  <span>Score :</span>
+  <template v-if="match.scoreSets && match.scoreSets.length">
+    <span v-for="(set, index) in match.scoreSets" :key="index" class="set-score">
+      [
+      <span class="score-joueur1">{{ set.joueur1 }}</span> - 
+      <span class="score-joueur2">{{ set.joueur2 }}</span>
+      ]
+    </span>
+  </template>
+  <template v-else>
+    {{ match.score || 'Pas encore joué' }}
+  </template>
+</div>
+
+  <div class="match-info">
+  <div class="terrain">Terrain : {{ match.terrain }}</div>
+  <div class="date">Date : {{ formatDate(match.date) }}</div>
+</div>
+        </template>
+        <template v-else>
+          <em>Informations incomplètes</em>
+        </template>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script>
+import axios from 'axios'
+
+export default {
+  data() {
+    return {
+      matches: [],
+      joueurs: []
+    }
+  },
+  methods: {
+    getNomJoueur(match, joueurKey) {
+      return match?.[joueurKey]?.nom || 'Inconnu'
+    },
+    formatDate(dateStr) {
+      return new Date(dateStr).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
+    }
+  },
+  async mounted() {
+    
+
+    try {
+      const matchesRes = await axios.get('http://localhost:1337/api/matches?populate[joueur1]=true&populate[joueur2]=true')
+      this.matches = matchesRes.data.data.filter(match => match.joueur1 && match.joueur2)
+    } catch (error) {
+      console.error('Erreur lors de la récupération des matchs', error)
+    }
+  }
+}
+</script>
+
+<style scoped>
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+  margin: 0;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  max-width: 700px;
+  margin: 0 auto 40px auto;
+}
+.match-info {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.terrain {
+  background-color: #34495e; /* bleu foncé */
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.date {
+  background-color: #e67e22; /* orange chaleureux */
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.match-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  border: 2px solid #ccc; /* bordure visible par défaut */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.match-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+  border-color: #27ae60; /* change la couleur de la bordure au hover */
+}
+
+.players {
+  font-size: 1.3rem;
+  color: #27ae60;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.joueur1 {
+  color: #f1c40f; /* jaune */
+  font-weight: 800;
+}
+
+.joueur2 {
+  color: #2980b9; /* bleu */
+  font-weight: 800;
+}
+
+.vs {
+  color: #555;
+  font-weight: 500;
+}
+
+.score {
+  font-weight: 800;
+  margin-top: 8px;
+}
+
+.set-score {
+  margin-right: 10px;
+  font-size: 2rem;
+}
+
+.score-joueur1 {
+  color: #f1c40f; /* jaune */
+  font-weight: 700;
+}
+
+.score-joueur2 {
+  color: #2980b9; /* bleu */
+  font-weight: 700;
+}
+.infos {
+  display: flex;
+  justify-content: space-around;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.infos span {
+  background-color: #ecf0f1;
+  padding: 6px 12px;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.match-card em {
+  color: #e74c3c;
+  font-style: normal;
+  display: block;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.player-item {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  transition: background-color 0.2s ease;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  font-weight: 600;
+}
+
+.player-item:hover {
+  background-color: #f1f1f1;
+}
+</style>
