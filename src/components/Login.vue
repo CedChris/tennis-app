@@ -122,4 +122,74 @@ button:disabled {
   margin-top: 12px;
   text-align: center;
 }
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  box-sizing: border-box; /* Très important pour éviter les débordements */
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    margin: 20px auto;
+    padding: 20px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  input {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  button {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  label {
+    font-size: 0.9rem;
+  }
+
+  .error-message {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-container {
+    margin: 10px auto;
+    padding: 15px;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  input {
+    padding: 6px;
+    font-size: 0.8rem;
+  }
+
+  button {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+
+  label {
+    font-size: 0.8rem;
+  }
+
+  .error-message {
+    font-size: 0.8rem;
+  }
+}
 </style>
