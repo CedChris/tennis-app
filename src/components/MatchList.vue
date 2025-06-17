@@ -207,7 +207,9 @@ ul {
 .player-item:hover {
   background-color: #f1f1f1;
 }
+
 @media (max-width: 600px) {
+
   @media (max-width: 600px) {
   .players {
     flex-direction: column;
