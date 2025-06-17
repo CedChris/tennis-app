@@ -1,50 +1,9 @@
 <template>
-  <div id="app" class="container">
-    <template v-if="isAuthenticated">
-      <Logo />
-      <button @click="logout" class="logout-button">Se déconnecter</button>
-      <MatchList />
-    </template>
-
-    <template v-else>
-      <LoginForm @login-success="handleLoginSuccess" />
-    </template>
-  </div>
+  <router-view />
 </template>
-
 <script>
-import MatchList from './components/MatchList.vue'
-import Logo from './components/Logo.vue'
-import LoginForm from './components/LoginForm.vue'
-
 export default {
-  name: 'App',
-  components: {
-    MatchList,
-    Logo,
-    LoginForm
-  },
-  data() {
-    return {
-      isAuthenticated: false
-    }
-  },
-  mounted() {
-    const token = localStorage.getItem('token')
-    if (token) {
-      this.isAuthenticated = true
-    }
-  },
-  methods: {
-    handleLoginSuccess() {
-      this.isAuthenticated = true
-    },
-    logout() {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      this.isAuthenticated = false
-    }
-  }
+  name: 'App'
 }
 </script>
 
@@ -60,6 +19,26 @@ export default {
   color: #2c3e50;
 }
 
+.logo-clickable {
+  cursor: pointer;
+  display: block;
+  margin: 0 auto 20px;
+  width: 120px; /* ajuste la taille comme tu veux */
+}
+
+.logout-button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 20px 0;
+}
+
+.logout-button:hover {
+  background-color: #c0392b;
+}
 h1 {
   text-align: center;
   font-weight: 700;
