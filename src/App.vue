@@ -63,7 +63,6 @@ h1 {
   transform: translateY(-4px);
   border-color: #2980b9;
 }
-
 .logout-button {
   background-color: #e74c3c;
   color: white;
@@ -71,7 +70,8 @@ h1 {
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
-  margin: 20px 0;
+  margin: 20px auto; /* Centrage horizontal */
+  display: block;     /* Nécessaire pour appliquer le centrage via margin auto */
 }
 
 .logout-button:hover {
