@@ -52,7 +52,6 @@ export default {
         this.$emit('login-success', response.data.user)
 
         // Redirection ou affichage d'un message de succès
-        // this.$router.push('/admin') si tu utilises vue-router
       } catch (error) {
         console.error('Erreur de connexion', error)
         this.errorMessage = 'Identifiants incorrects.'
