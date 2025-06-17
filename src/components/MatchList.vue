@@ -3,7 +3,7 @@
     <h2>Liste des matchs</h2>
     <ul>
       <li v-for="match in matches" :key="match.id" class="match-card">
-        <template v-if="match.attributes.joueur1 && match.attributes.joueur2">
+        <template v-if="match.joueur1 && match.joueur2">
           <div class="players">
             <strong class="joueur1">{{ getNomJoueur(match, 'joueur1') }}</strong>
             <span class="vs">vs</span>
@@ -12,21 +12,22 @@
 
           <div class="score">
             <span>Score :</span>
-            <template v-if="match.attributes.scoreSets && match.attributes.scoreSets.length">
-              <span v-for="(set, index) in match.attributes.scoreSets" :key="index" class="set-score">
+            <template v-if="match.scoreSets && match.scoreSets.length">
+              <span v-for="(set, index) in match.scoreSets" :key="index" class="set-score">
                 [ <span class="score-joueur1">{{ set.joueur1 }}</span> - <span class="score-joueur2">{{ set.joueur2 }}</span> ]
               </span>
             </template>
             <template v-else>
-              {{ match.attributes.score || 'Pas encore joué' }}
+              {{ match.score || 'Pas encore joué' }}
             </template>
           </div>
 
           <div class="match-info">
-            <div class="terrain">Terrain : {{ match.attributes.terrain }}</div>
-            <div class="date">Date : {{ formatDate(match.attributes.date) }}</div>
+            <div class="terrain">Terrain : {{ match.terrain }}</div>
+            <div class="date">Date : {{ formatDate(match.date) }}</div>
           </div>
 
+          <!-- Boutons CRUD visibles uniquement si l'utilisateur est authentifié -->
           <div v-if="isAuthenticated" class="crud-buttons">
             <router-link :to="`/edit-match/${match.id}`" class="edit-button">Modifier</router-link>
             <button @click="deleteMatch(match.id)" class="delete-button">Supprimer</button>
@@ -53,7 +54,7 @@ export default {
   },
   methods: {
     getNomJoueur(match, joueurKey) {
-      return match?.attributes?.[joueurKey]?.data?.attributes?.nom || 'Inconnu'
+      return match?.[joueurKey]?.nom || 'Inconnu'
     },
     formatDate(dateStr) {
       return new Date(dateStr).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -77,7 +78,7 @@ export default {
   async mounted() {
     try {
       const matchesRes = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches?populate[joueur1]=true&populate[joueur2]=true')
-      this.matches = matchesRes.data.data.filter(match => match.attributes.joueur1 && match.attributes.joueur2)
+      this.matches = matchesRes.data.data.filter(match => match.joueur1 && match.joueur2)
     } catch (error) {
       console.error('Erreur lors de la récupération des matchs', error)
     }
