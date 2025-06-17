@@ -5,30 +5,35 @@
       <li v-for="match in matches" :key="match.id" class="match-card">
         <template v-if="match.joueur1 && match.joueur2">
           <div class="players">
-  <strong class="joueur1">{{ getNomJoueur(match, 'joueur1') }}</strong>
-  <span class="vs">vs</span>
-  <strong class="joueur2">{{ getNomJoueur(match, 'joueur2') }}</strong>
-</div>
-         <div class="score">
-  <span>Score :</span>
-  <template v-if="match.scoreSets && match.scoreSets.length">
-    <span v-for="(set, index) in match.scoreSets" :key="index" class="set-score">
-      [
-      <span class="score-joueur1">{{ set.joueur1 }}</span> - 
-      <span class="score-joueur2">{{ set.joueur2 }}</span>
-      ]
-    </span>
-  </template>
-  <template v-else>
-    {{ match.score || 'Pas encore joué' }}
-  </template>
-</div>
+            <strong class="joueur1">{{ getNomJoueur(match, 'joueur1') }}</strong>
+            <span class="vs">vs</span>
+            <strong class="joueur2">{{ getNomJoueur(match, 'joueur2') }}</strong>
+          </div>
 
-  <div class="match-info">
-  <div class="terrain">Terrain : {{ match.terrain }}</div>
-  <div class="date">Date : {{ formatDate(match.date) }}</div>
-</div>
+          <div class="score">
+            <span>Score :</span>
+            <template v-if="match.scoreSets && match.scoreSets.length">
+              <span v-for="(set, index) in match.scoreSets" :key="index" class="set-score">
+                [ <span class="score-joueur1">{{ set.joueur1 }}</span> - <span class="score-joueur2">{{ set.joueur2 }}</span> ]
+              </span>
+            </template>
+            <template v-else>
+              {{ match.score || 'Pas encore joué' }}
+            </template>
+          </div>
+
+          <div class="match-info">
+            <div class="terrain">Terrain : {{ match.terrain }}</div>
+            <div class="date">Date : {{ formatDate(match.date) }}</div>
+          </div>
+
+          <!-- Boutons CRUD visibles uniquement si l'utilisateur est authentifié -->
+          <div v-if="isAuthenticated" class="crud-buttons">
+            <router-link :to="`/edit-match/${match.id}`" class="edit-button">Modifier</router-link>
+            <button @click="deleteMatch(match.id)" class="delete-button">Supprimer</button>
+          </div>
         </template>
+
         <template v-else>
           <em>Informations incomplètes</em>
         </template>
@@ -41,10 +46,10 @@
 import axios from 'axios'
 
 export default {
+  props: ['isAuthenticated'],
   data() {
     return {
-      matches: [],
-      joueurs: []
+      matches: []
     }
   },
   methods: {
@@ -53,6 +58,21 @@ export default {
     },
     formatDate(dateStr) {
       return new Date(dateStr).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
+    },
+    async deleteMatch(id) {
+      if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
+        const token = localStorage.getItem('token')
+        try {
+          await axios.delete(`https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+          this.matches = this.matches.filter(match => match.id !== id)
+        } catch (error) {
+          console.error('Erreur lors de la suppression du match', error)
+        }
+      }
     }
   },
   async mounted() {
@@ -65,7 +85,6 @@ export default {
   }
 }
 </script>
-
 <style scoped>
 
 body {
@@ -104,7 +123,7 @@ ul {
 }
 
 .date {
-  background-color: #e67e22; /* orange chaleureux */
+  background-color: #34495e;; /* orange chaleureux */
   padding: 4px 10px;
   border-radius: 6px;
 }
@@ -115,15 +134,7 @@ ul {
   padding: 20px 24px;
   margin-bottom: 20px;
   border: 2px solid #ccc; /* bordure visible par défaut */
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-
-.match-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
-  border-color: #27ae60; /* change la couleur de la bordure au hover */
-}
-
 .players {
   font-size: 1.3rem;
   color: #27ae60;
@@ -206,6 +217,35 @@ ul {
 
 .player-item:hover {
   background-color: #f1f1f1;
+}
+.crud-buttons {
+  margin-top: 10px;
+}
+
+.edit-button {
+  margin-right: 10px;
+  background-color: #3498db;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.edit-button:hover {
+  background-color: #2980b9;
+}
+
+.delete-button {
+  background-color: #e74c3c;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background-color: #c0392b;
 }
 
 @media (max-width: 600px) {

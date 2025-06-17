@@ -4,6 +4,7 @@
     
     <template v-if="isAuthenticated">
       <button @click="logout" class="logout-button">Se déconnecter</button>
+      <router-link to="/add-match" class="add-match-button">Ajouter un match</router-link>
     </template>
     <template v-else>
       <div class="login-container">
@@ -87,5 +88,22 @@ export default {
   font-weight: 600;
   user-select: none;
   text-align: center;    /* centre le texte */
+}
+.add-match-button {
+  display: inline-block;
+  background-color: #2ecc71; /* Vert doux */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin: 20px auto;
+}
+
+.add-match-button:hover {
+  background-color: #27ae60; /* Vert plus foncé au hover */
+  transform: scale(1.05); /* Effet de zoom léger au survol */
 }
 </style>
