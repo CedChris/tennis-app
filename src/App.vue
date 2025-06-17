@@ -1,19 +1,49 @@
 <template>
   <div id="app" class="container">
-    <Logo />
-    <MatchList />
+    <template v-if="isAuthenticated">
+      <Logo />
+      <button @click="logout" class="logout-button">Se déconnecter</button>
+      <MatchList />
+    </template>
+
+    <template v-else>
+      <LoginForm @login-success="handleLoginSuccess" />
+    </template>
   </div>
 </template>
 
 <script>
 import MatchList from './components/MatchList.vue'
 import Logo from './components/Logo.vue'
+import LoginForm from './components/LoginForm.vue'
 
 export default {
   name: 'App',
   components: {
     MatchList,
-    Logo
+    Logo,
+    LoginForm
+  },
+  data() {
+    return {
+      isAuthenticated: false
+    }
+  },
+  mounted() {
+    const token = localStorage.getItem('token')
+    if (token) {
+      this.isAuthenticated = true
+    }
+  },
+  methods: {
+    handleLoginSuccess() {
+      this.isAuthenticated = true
+    },
+    logout() {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      this.isAuthenticated = false
+    }
   }
 }
 </script>
@@ -39,8 +69,6 @@ h1 {
   text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
 }
 
-/* Pour le composant MatchList, on peut imaginer un style ici */
-/* Par exemple des cartes blanches, arrondies avec ombre légère, etc. */
 .match-card {
   background-color: white;
   border-radius: 10px;
@@ -55,5 +83,19 @@ h1 {
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
   transform: translateY(-4px);
   border-color: #2980b9;
+}
+
+.logout-button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 20px 0;
+}
+
+.logout-button:hover {
+  background-color: #c0392b;
 }
 </style>

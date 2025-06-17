@@ -56,10 +56,8 @@ export default {
     }
   },
   async mounted() {
-    
-
     try {
-      const matchesRes = await axios.get('http://localhost:1337/api/matches?populate[joueur1]=true&populate[joueur2]=true')
+      const matchesRes = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches?populate[joueur1]=true&populate[joueur2]=true')
       this.matches = matchesRes.data.data.filter(match => match.joueur1 && match.joueur2)
     } catch (error) {
       console.error('Erreur lors de la récupération des matchs', error)
@@ -208,5 +206,43 @@ ul {
 
 .player-item:hover {
   background-color: #f1f1f1;
+}
+@media (max-width: 600px) {
+  @media (max-width: 600px) {
+  .players {
+    flex-direction: column;
+    text-align: center;
+    font-size: 1rem; /* réduit la taille des noms */
+    gap: 4px; /* réduit l'espacement */
+  }
+
+  .set-score {
+    display: inline-block;
+    margin-bottom: 6px;
+    font-size: 1.2rem; /* réduit encore la taille du score */
+  }
+
+  .score {
+    font-size: 0.9rem; /* réduit la taille du texte "Score :" */
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .match-card {
+    padding: 12px 16px; /* réduit l'espace intérieur de la carte */
+  }
+
+  .match-info {
+    flex-direction: column; /* stack les infos terrain/date en colonne */
+    gap: 4px; /* réduit l’espacement */
+    font-size: 0.8rem; /* réduit la taille du texte terrain/date */
+    text-align: center;
+  }
+
+  .terrain, .date {
+    padding: 3px 8px; /* réduit le padding des badges */
+    border-radius: 4px; /* arrondis plus petits */
+  }
+}
 }
 </style>
