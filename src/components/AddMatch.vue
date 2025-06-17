@@ -194,5 +194,56 @@ button[type="button"]:hover {
     grid-template-columns: 1fr;
   }
 }
+@media (max-width: 400px) {
+  .add-match-container {
+    max-width: 100%;
+    margin: 20px 10px;
+    padding: 20px 15px;
+    box-shadow: none;
+    border-radius: 8px;
+  }
 
+  .add-match-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  label {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+  }
+
+  input, select {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .set-input {
+    display: block; /* empile les inputs */
+    margin-bottom: 12px;
+  }
+
+  .set-input h4 {
+    margin: 8px 0 4px;
+    font-size: 1.1rem;
+  }
+
+  .set-input input {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  button {
+    padding: 10px;
+    font-size: 0.95rem;
+  }
+
+  button[type="button"] {
+    margin-top: 8px;
+  }
+}
 </style>
