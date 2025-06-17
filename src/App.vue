@@ -1,5 +1,8 @@
 <template>
   <router-view />
+  <footer class="footer-tennis">
+  <p>&copy; 2025 Tennis Club Evin-Malmaison. Tous droits réservés.</p>
+</footer>
 </template>
 <script>
 export default {
@@ -8,6 +11,15 @@ export default {
 </script>
 
 <style>
+.footer-tennis {
+  text-align: center;
+  padding: 10px 0;
+  font-size: 0.85rem;
+  color: #555;
+  border-top: 1px solid #ccc;
+  margin-top: 30px;
+  font-family: 'Arial', sans-serif;
+}
 .container {
   max-width: 800px;
   margin: 40px auto;
