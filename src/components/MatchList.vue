@@ -59,26 +59,26 @@ export default {
     formatDate(dateStr) {
       return new Date(dateStr).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
     },
-    async deleteMatch(id) {
+    async deleteMatch(documentId) {
   if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
     const token = localStorage.getItem('token')
     if (!token) {
       alert('Vous devez être connecté pour supprimer un match.')
       return
     }
-   try {
-    const response = await axios.delete(`https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-    console.log('Réponse suppression:', response)
-    this.matches = this.matches.filter(match => match.id !== id)
-    alert('Match supprimé avec succès.')
-  } catch (error) {
-    console.error('Erreur lors de la suppression du match', error.response)
-    alert('Erreur lors de la suppression : ' + (error.response?.data?.error?.message || 'Erreur inconnue'))
-  }
+    try {
+      const response = await axios.delete(`https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${documentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      console.log('Réponse suppression:', response)
+      this.matches = this.matches.filter(match => match.documentId !== documentId)
+      alert('Match supprimé avec succès.')
+    } catch (error) {
+      console.error('Erreur lors de la suppression du match', error.response)
+      alert('Erreur lors de la suppression : ' + (error.response?.data?.error?.message || 'Erreur inconnue'))
+    }
   }
 }
   },
