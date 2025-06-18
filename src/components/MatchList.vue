@@ -60,28 +60,35 @@ export default {
       return new Date(dateStr).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
     },
     async deleteMatch(id) {
-      if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
-        const token = localStorage.getItem('token')
-        try {
-          await axios.delete(`https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          })
-          this.matches = this.matches.filter(match => match.id !== id)
-        } catch (error) {
-          console.error('Erreur lors de la suppression du match', error)
-        }
-      }
+  if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      alert('Vous devez être connecté pour supprimer un match.')
+      return
     }
+   try {
+    const response = await axios.delete(`https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    console.log('Réponse suppression:', response)
+    this.matches = this.matches.filter(match => match.id !== id)
+    alert('Match supprimé avec succès.')
+  } catch (error) {
+    console.error('Erreur lors de la suppression du match', error.response)
+    alert('Erreur lors de la suppression : ' + (error.response?.data?.error?.message || 'Erreur inconnue'))
+  }
+  }
+}
   },
   async mounted() {
     try {
-    const matchesRes = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches?filters[deletedAt][$null]=true&populate=*')
-    this.matches = matchesRes.data.data.filter(match => match.attributes.joueur1.data && match.attributes.joueur2.data)
-  } catch (error) {
-    console.error('Erreur lors de la récupération des matchs :', error)
-  }
+      const matchesRes = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches?populate[joueur1]=true&populate[joueur2]=true')
+      this.matches = matchesRes.data.data.filter(match => match.joueur1 && match.joueur2)
+    } catch (error) {
+      console.error('Erreur lors de la récupération des matchs', error)
+    }
   }
 }
 </script>
