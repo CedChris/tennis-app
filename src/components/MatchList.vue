@@ -77,7 +77,7 @@ export default {
   },
   async mounted() {
     try {
-      const matchesRes = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches?populate[joueur1]=true&populate[joueur2]=true')
+      const matchesRes = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches?filters[deletedAt][$null]=true&populate[joueur1]=true&populate[joueur2]=true')
       this.matches = matchesRes.data.data.filter(match => match.joueur1 && match.joueur2)
     } catch (error) {
       console.error('Erreur lors de la récupération des matchs', error)
