@@ -30,7 +30,7 @@
           <!-- Boutons CRUD visibles uniquement si l'utilisateur est authentifié -->
           <div v-if="isAuthenticated" class="crud-buttons">
             <router-link :to="`/edit-match/${match.id}`" class="edit-button">Modifier</router-link>
-            <button @click="deleteMatch(match.id)" class="delete-button">Supprimer</button>
+            <button @click="deleteMatch(match.documentId)">Supprimer</button>
           </div>
         </template>
 
@@ -59,7 +59,7 @@ export default {
     formatDate(dateStr) {
       return new Date(dateStr).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
     },
-    async deleteMatch(documentId) {
+  async deleteMatch(documentId) {
   if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
     const token = localStorage.getItem('token')
     if (!token) {
