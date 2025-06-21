@@ -89,7 +89,7 @@ export default {
 }
 /* Logo lien */
 .home-link {
-  align-self: flex-start;
+  align-self: center; /* Centrer dans le flex parent */
   margin-bottom: 25px;
   display: inline-flex;
   transition: transform 0.25s ease;
