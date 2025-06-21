@@ -1,25 +1,45 @@
 <template>
   <div class="add-match-container">
+
+    <!-- Formulaire pour ajouter un joueur -->
+    <div class="add-player-container">
+      <h2>Ajouter un joueur</h2>
+      <form @submit.prevent="addPlayer">
+        <div class="form-group">
+          <label for="nom">Nom/Prénom du joueur :</label>
+          <input type="text" v-model="newPlayer.nom" required />
+        </div>
+
+        <div class="form-group">
+          <label for="classement">Classement :</label>
+          <input type="text" v-model="newPlayer.classement" required />
+        </div>
+
+        <button type="submit" class="submit-button">Ajouter le joueur</button>
+      </form>
+    </div>
+
+    <!-- Formulaire pour ajouter un match -->
     <h2>Ajouter un match</h2>
     <form @submit.prevent="addMatch">
       <div class="form-group">
         <label for="joueur1">Joueur 1 :</label>
         <select v-model="match.joueur1" required>
-  <option disabled value="">Sélectionnez le joueur 1</option>
-  <option v-for="joueur in joueurs" :key="joueur.id" :value="joueur.id">
-    {{ joueur.nom }}
-  </option>
-</select>
+          <option disabled value="">Sélectionnez le joueur 1</option>
+          <option v-for="joueur in joueurs" :key="joueur.id" :value="joueur.id">
+            {{ joueur.nom }} ({{ joueur.classement }})
+          </option>
+        </select>
       </div>
 
       <div class="form-group">
         <label for="joueur2">Joueur 2 :</label>
         <select v-model="match.joueur2" required>
-  <option disabled value="">Sélectionnez le joueur 2</option>
-  <option v-for="joueur in joueurs" :key="joueur.id" :value="joueur.id">
-    {{ joueur.nom }}
-  </option>
-</select>
+          <option disabled value="">Sélectionnez le joueur 2</option>
+          <option v-for="joueur in joueurs" :key="joueur.id" :value="joueur.id">
+            {{ joueur.nom }} ({{ joueur.classement }})
+          </option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -32,14 +52,28 @@
         <input type="datetime-local" v-model="match.date" required />
       </div>
 
+      <!-- Champ catégorie -->
       <div class="form-group">
-        <label>Score Sets (JSON) :</label>
-        <div v-for="(set, index) in scoreSetsInputs" :key="index" class="set-input">
-        <h4>Set {{ index + 1 }}</h4>
-        <input type="number" v-model.number="set.joueur1" placeholder="Score Joueur 1" required />
-        <input type="number" v-model.number="set.joueur2" placeholder="Score Joueur 2" required />
+        <label for="categorie">Catégorie :</label>
+        <select v-model="match.categorie" required>
+          <option disabled value="">Sélectionnez une catégorie</option>
+          <option value="SM">SM</option>
+          <option value="SM 35">SM 35</option>
+          <option value="SM 45">SM 45</option>
+          <option value="SM 55">SM 55</option>
+          <option value="DM">DM</option>
+          <option value="SD">SD</option>
+        </select>
       </div>
-      <button type="button" @click="ajouterSet">Ajouter un Set</button>
+
+      <div class="form-group">
+        <label>Score Sets :</label>
+        <div v-for="(set, index) in scoreSetsInputs" :key="index" class="set-input">
+          <h4>Set {{ index + 1 }}</h4>
+          <input type="number" v-model.number="set.joueur1" placeholder="Score Joueur 1" required />
+          <input type="number" v-model.number="set.joueur2" placeholder="Score Joueur 2" required />
+        </div>
+        <button type="button" @click="ajouterSet">Ajouter un Set</button>
       </div>
 
       <button type="submit" class="submit-button">Ajouter le match</button>
@@ -54,11 +88,16 @@ export default {
   data() {
     return {
       joueurs: [],
+      newPlayer: {
+        nom: '',
+        classement: ''
+      },
       match: {
         joueur1: '',
         joueur2: '',
         terrain: '',
-        date: ''
+        date: '',
+        categorie: '' // Ajout de la catégorie
       },
       scoreSetsInputs: [
         { joueur1: '', joueur2: '' }
@@ -66,47 +105,84 @@ export default {
     }
   },
   async mounted() {
-    try {
-      const res = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/joueurs')
-      this.joueurs = res.data.data
-    } catch (error) {
-      console.error('Erreur lors de la récupération des joueurs', error)
-    }
+    await this.fetchPlayers()
   },
   methods: {
+    async fetchPlayers() {
+      try {
+        const res = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/joueurs')
+        this.joueurs = res.data.data
+      } catch (error) {
+        console.error('Erreur lors de la récupération des joueurs', error)
+      }
+    },
+    async addPlayer() {
+      if (!this.newPlayer.nom.trim() || !this.newPlayer.classement.trim()) {
+        alert('Le nom et le classement du joueur ne peuvent pas être vides.')
+        return
+      }
+
+      try {
+        const token = localStorage.getItem('token')
+        const payload = {
+          data: {
+            nom: this.newPlayer.nom.trim(),
+            classement: this.newPlayer.classement.trim()
+          }
+        }
+
+        await axios.post('https://ancient-purpose-79e6e65b06.strapiapp.com/api/joueurs', payload, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+
+        alert('Joueur ajouté avec succès !')
+        this.newPlayer.nom = ''
+        this.newPlayer.classement = ''
+        await this.fetchPlayers()
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout du joueur', error)
+        alert('Erreur lors de l\'ajout du joueur.')
+      }
+    },
     ajouterSet() {
       this.scoreSetsInputs.push({ joueur1: '', joueur2: '' })
     },
     async addMatch() {
-  try {
-    const token = localStorage.getItem('token')
-    const payload = {
-      data: {
-        joueur1: { id: this.match.joueur1 },
-        joueur2: { id: this.match.joueur2 },
-        terrain: this.match.terrain,
-        date: this.match.date,
-        scoreSets: this.scoreSetsInputs
+      try {
+        const token = localStorage.getItem('token')
+        const payload = {
+          data: {
+            joueur1: { id: this.match.joueur1 },
+            joueur2: { id: this.match.joueur2 },
+            terrain: this.match.terrain,
+            date: this.match.date,
+            categorie: this.match.categorie, // Envoi de la catégorie
+            scoreSets: this.scoreSetsInputs
+          }
+        }
+
+        console.log('Payload envoyé :', JSON.stringify(payload, null, 2))
+
+        await axios.post('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches', payload, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+
+        alert('Match ajouté avec succès !')
+        this.$router.push('/')
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout du match', error)
+        console.error('Détails de l\'erreur :', error.response?.data)
+        alert('Erreur lors de l\'ajout du match.')
       }
     }
-    console.log('Payload envoyé :', JSON.stringify(payload, null, 2))
-    
-    await axios.post('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches', payload, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-    alert('Match ajouté avec succès !')
-    this.$router.push('/')
-  } catch (error) {
-    console.error('Erreur lors de l\'ajout du match', error)
-    console.error('Détails de l\'erreur :', error.response?.data)
-    alert('Erreur lors de l\'ajout du match.')
-  }
-}
   }
 }
 </script>
+
 
 <style>
 .add-match-container {
@@ -116,6 +192,18 @@ export default {
   background-color: #f9f9f9;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.add-player-container {
+  margin-bottom: 30px;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.add-player-container h3 {
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+  color: #16a085;
 }
 
 .add-match-container h2 {
@@ -194,6 +282,7 @@ button[type="button"]:hover {
     grid-template-columns: 1fr;
   }
 }
+
 @media (max-width: 400px) {
   .add-match-container {
     max-width: 100%;
@@ -223,7 +312,7 @@ button[type="button"]:hover {
   }
 
   .set-input {
-    display: block; /* empile les inputs */
+    display: block;
     margin-bottom: 12px;
   }
 

@@ -1,20 +1,29 @@
 <template>
-  <div>
+  <div class="match-list-container">
     <h2>Liste des matchs</h2>
     <ul>
       <li v-for="match in matches" :key="match.id" class="match-card">
         <template v-if="match.joueur1 && match.joueur2">
           <div class="players">
-            <strong class="joueur1">{{ getNomJoueur(match, 'joueur1') }}</strong>
+            <strong class="joueur1">
+              {{ getNomJoueur(match, 'joueur1') }}
+              <span v-if="getClassement(match, 'joueur1')" class="classement">
+                ({{ getClassement(match, 'joueur1') }})
+              </span>
+            </strong>
             <span class="vs">vs</span>
-            <strong class="joueur2">{{ getNomJoueur(match, 'joueur2') }}</strong>
+            <strong class="joueur2">
+              {{ getNomJoueur(match, 'joueur2') }}
+              <span v-if="getClassement(match, 'joueur2')" class="classement">
+                ({{ getClassement(match, 'joueur2') }})
+              </span>
+            </strong>
           </div>
 
           <div class="score">
-            <span>Score :</span>
             <template v-if="match.scoreSets && match.scoreSets.length">
               <span v-for="(set, index) in match.scoreSets" :key="index" class="set-score">
-                [ <span class="score-joueur1">{{ set.joueur1 }}</span> - <span class="score-joueur2">{{ set.joueur2 }}</span> ]
+                <span class="score-joueur1">{{ set.joueur1 }}</span> - <span class="score-joueur2">{{ set.joueur2 }}</span> 
               </span>
             </template>
             <template v-else>
@@ -24,13 +33,13 @@
 
           <div class="match-info">
             <div class="terrain">Terrain : {{ match.terrain }}</div>
-            <div class="date">Date : {{ formatDate(match.date) }}</div>
+            <div class="time">Heure : {{ formatTime(match.date) }}</div>
+            <div class="categorie">Catégorie : {{ match.categorie }}</div> <!-- Ajout ici -->
           </div>
 
-          <!-- Boutons CRUD visibles uniquement si l'utilisateur est authentifié -->
           <div v-if="isAuthenticated" class="crud-buttons">
             <router-link :to="`/edit-match/${match.id}`" class="edit-button">Modifier</router-link>
-            <button @click="deleteMatch(match.documentId)">Supprimer</button>
+            <button @click="deleteMatch(match.documentId)" class="delete-button">Supprimer</button>
           </div>
         </template>
 
@@ -56,31 +65,32 @@ export default {
     getNomJoueur(match, joueurKey) {
       return match?.[joueurKey]?.nom || 'Inconnu'
     },
-    formatDate(dateStr) {
-      return new Date(dateStr).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
+    getClassement(match, joueurKey) {
+      return match?.[joueurKey]?.classement || null
     },
-  async deleteMatch(documentId) {
-  if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      alert('Vous devez être connecté pour supprimer un match.')
-      return
-    }
-    try {
-      const response = await axios.delete(`https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${documentId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
+    formatTime(dateStr) {
+      return new Date(dateStr).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    },
+    async deleteMatch(documentId) {
+      if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
+        const token = localStorage.getItem('token')
+        if (!token) {
+          alert('Vous devez être connecté pour supprimer un match.')
+          return
         }
-      })
-      console.log('Réponse suppression:', response)
-      this.matches = this.matches.filter(match => match.documentId !== documentId)
-      alert('Match supprimé avec succès.')
-    } catch (error) {
-      console.error('Erreur lors de la suppression du match', error.response)
-      alert('Erreur lors de la suppression : ' + (error.response?.data?.error?.message || 'Erreur inconnue'))
+        try {
+          const response = await axios.delete(`https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${documentId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          console.log('Réponse suppression:', response)
+          this.matches = this.matches.filter(match => match.documentId !== documentId)
+          alert('Match supprimé avec succès.')
+        } catch (error) {
+          console.error('Erreur lors de la suppression du match', error.response)
+          alert('Erreur lors de la suppression : ' + (error.response?.data?.error?.message || 'Erreur inconnue'))
+        }
+      }
     }
-  }
-}
   },
   async mounted() {
     try {
@@ -92,7 +102,14 @@ export default {
   }
 }
 </script>
+
 <style scoped>
+/* GLOBAL */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -100,105 +117,139 @@ body {
   color: #333;
   margin: 0;
   padding: 20px;
+  overflow-x: hidden; /* Empêche le débordement horizontal */
 }
 
+/* CONTAINER PRINCIPAL */
+.match-list-container {
+  width: 100%;              /* Pleine largeur */
+  max-width: 1400px;        /* Largeur max */
+  margin: 0 auto;           /* Centré horizontalement */
+  padding: 20px 10px;
+  box-sizing: border-box;
+}
+
+/* TITRE */
 h2 {
   text-align: center;
   margin-bottom: 20px;
   color: #2c3e50;
 }
 
+/* LISTE DE MATCHS */
 ul {
   list-style: none;
   padding: 0;
-  max-width: 700px;
-  margin: 0 auto 40px auto;
-}
-.match-info {
-  display: flex;
-  gap: 16px;
-  margin-top: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #fff;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Min 280px pour éviter débordement */
+  gap: 20px;
 }
 
-.terrain {
-  background-color: #34495e; /* bleu foncé */
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-
-.date {
-  background-color: #34495e;; /* orange chaleureux */
-  padding: 4px 10px;
-  border-radius: 6px;
-}
+/* CARTE MATCH */
 .match-card {
-  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: #e8f5e9;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 20px 24px;
-  margin-bottom: 20px;
-  border: 2px solid #ccc; /* bordure visible par défaut */
+  border: 2px solid #ccc;
+  width: 100%;
+  box-sizing: border-box;
+  transition: transform 0.3s ease;
 }
+
+.match-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+/* JOUEURS */
 .players {
-  font-size: 1.3rem;
-  color: #27ae60;
+  font-size: 1.5rem;
   margin-bottom: 10px;
   display: flex;
-  justify-content: center;
-  gap: 10px;
-  font-weight: 700;
+  flex-direction: column;
+  justify-content: center;    /* Centre les éléments sur chaque ligne */
+  gap: 10px;                  /* Espace entre les joueurs */
+  flex-wrap: wrap;            /* Autorise le retour à la ligne */
+  text-align: center;
+  max-width: 100%;
+}
+
+.joueur1, .joueur2 {
+  white-space: nowrap;        /* Les noms restent sur une seule ligne */
+  font-weight: 1000;
 }
 
 .joueur1 {
-  color: #f1c40f; /* jaune */
-  font-weight: 800;
+  color: #f1c40f;
 }
 
 .joueur2 {
-  color: #2980b9; /* bleu */
-  font-weight: 800;
+  color: #2980b9;
 }
-
 .vs {
   color: #555;
   font-weight: 500;
 }
 
+/* SCORE */
 .score {
   font-weight: 800;
   margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
 }
 
 .set-score {
-  margin-right: 10px;
   font-size: 2rem;
+  margin: 10px;
+  display: flex;
+  flex-direction: column; /* Affichage vertical */
+  align-items: center;    /* Centrage horizontal */
+  gap: 10px;              /* Espace entre les scores */
 }
 
 .score-joueur1 {
-  color: #f1c40f; /* jaune */
+  color: #f1c40f;
   font-weight: 700;
 }
 
 .score-joueur2 {
-  color: #2980b9; /* bleu */
+  color: #2980b9;
   font-weight: 700;
 }
-.infos {
+/* INFOS MATCH */
+.match-info {
   display: flex;
-  justify-content: space-around;
-  font-size: 0.9rem;
-  color: #7f8c8d;
-  font-weight: 500;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  justify-content: center;
 }
 
-.infos span {
-  background-color: #ecf0f1;
+.terrain, .date, .time {
+  background-color: #34495e;
   padding: 6px 12px;
-  border-radius: 10px;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+  border-radius: 6px;
+}
+.categorie {
+  display: inline-block;
+  background-color: #007bff;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-top: 6px;
 }
 
 .match-card em {
@@ -209,28 +260,15 @@ ul {
   padding: 10px 0;
 }
 
-.player-item {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-  transition: background-color 0.2s ease;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-  font-weight: 600;
-}
-
-.player-item:hover {
-  background-color: #f1f1f1;
-}
+/* BOUTONS EDITION & SUPPRESSION */
 .crud-buttons {
-  margin-top: 10px;
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 
 .edit-button {
-  margin-right: 10px;
   background-color: #3498db;
   color: white;
   padding: 6px 12px;
@@ -255,43 +293,89 @@ ul {
   background-color: #c0392b;
 }
 
-@media (max-width: 600px) {
+/* CLASSEMENT */
+.classement {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #34495e;         /* Bleu-gris foncé, doux et lisible */
+  margin-left: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #f1c40f; /* Fond léger, discret */
+  display: inline-block;
+}
 
-  @media (max-width: 600px) {
-  .players {
-    flex-direction: column;
-    text-align: center;
-    font-size: 1rem; /* réduit la taille des noms */
-    gap: 4px; /* réduit l'espacement */
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .match-list-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 5px;
+    margin: 0 auto;
+    box-sizing: border-box;
   }
 
-  .set-score {
-    display: inline-block;
-    margin-bottom: 6px;
-    font-size: 1.2rem; /* réduit encore la taille du score */
-  }
-
-  .score {
-    font-size: 0.9rem; /* réduit la taille du texte "Score :" */
-    text-align: center;
-    margin-top: 4px;
+  ul {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0 auto;
   }
 
   .match-card {
-    padding: 12px 16px; /* réduit l'espace intérieur de la carte */
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: auto !important;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+  }
+
+  .players {
+    flex-direction: column;
+    font-size: 1.4rem;
+    gap: 8px;
+  }
+
+  .set-score {
+    font-size: 1.6rem;
+  }
+
+  .score {
+    font-size: 1rem;
+    text-align: center;
+    margin-top: 6px;
   }
 
   .match-info {
-    flex-direction: column; /* stack les infos terrain/date en colonne */
-    gap: 4px; /* réduit l’espacement */
-    font-size: 0.8rem; /* réduit la taille du texte terrain/date */
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.9rem;
     text-align: center;
   }
 
-  .terrain, .date {
-    padding: 3px 8px; /* réduit le padding des badges */
-    border-radius: 4px; /* arrondis plus petits */
+  .terrain, .date, .time {
+    padding: 4px 8px;
+    border-radius: 4px;
   }
 }
+
+@media (max-width: 480px) {
+  .players {
+    font-size: 1.2rem;
+  }
+
+  .set-score {
+    font-size: 1.4rem;
+  }
+
+  .score {
+    font-size: 0.9rem;
+  }
+
+  .match-info {
+    font-size: 0.8rem;
+  }
 }
 </style>
