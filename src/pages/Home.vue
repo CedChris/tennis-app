@@ -200,6 +200,15 @@ export default {
   .home-link {
     margin-bottom: 15px;
   }
+  .add-match-button {
+    display: block; /* Pour que le bouton prenne toute la largeur */
+    width: 100%;
+    padding: 16px 0; /* Plus de hauteur, pas de padding horizontal */
+    font-size: 1.3rem; /* Texte plus grand */
+    text-align: center;
+    margin: 20px auto; /* Centré verticalement */
+    border-radius: 12px; /* Coins plus arrondis sur mobile */
+  }
 }
 
 </style>
