@@ -74,6 +74,7 @@
       <input type="number" v-model.number="set.joueur2" placeholder="Score Joueur 2" required />
     </div>
     <button type="button" @click="ajouterSet">Ajouter un Set</button>
+    <button type="button" @click="supprimerSet(index)">Supprimer ce set</button>
   </div>
 
 
@@ -151,6 +152,13 @@ export default {
     ajouterSet() {
       this.scoreSetsInputs.push({ joueur1: '', joueur2: '' })
     },
+    supprimerSet(index) {
+  if (this.scoreSetsInputs.length > 1) {
+    this.scoreSetsInputs.splice(index, 1);
+  } else {
+    alert('Il doit rester au moins un set.');
+  }
+},
     async addMatch() {
       try {
         const token = localStorage.getItem('token')
