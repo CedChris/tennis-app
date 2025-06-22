@@ -67,15 +67,34 @@
       </div>
 
   <div class="form-group">
-    <label>Score Sets :</label>
-    <div v-for="(set, index) in scoreSetsInputs" :key="index" class="set-input">
-      <h4>Set {{ index + 1 }}</h4>
-      <input type="text" v-model="set.joueur1" placeholder="Score Joueur 1 ou WO" required />
-      <input type="text" v-model="set.joueur2" placeholder="Score Joueur 2 ou WO" required />
-    </div>
-    <button type="button" @click="ajouterSet">Ajouter un Set</button>
-    <button type="button" @click="supprimerSet(index)">Supprimer ce set</button>
+  <label>Score Sets :</label>
+  <div class="score-info">
+    Entrez un score numérique ou "WO" en cas de forfait.
   </div>
+  <div v-for="(set, index) in scoreSetsInputs" :key="index" class="set-input">
+    <h4>Set {{ index + 1 }}</h4>
+    <div class="input-group">
+      <label :for="'joueur1-set-' + index">Score Joueur 1 :</label>
+      <input
+        :id="'joueur1-set-' + index"
+        type="text"
+        v-model="set.joueur1"
+        required
+      />
+    </div>
+    <div class="input-group">
+      <label :for="'joueur2-set-' + index">Score Joueur 2 :</label>
+      <input
+        :id="'joueur2-set-' + index"
+        type="text"
+        v-model="set.joueur2"
+        required
+      />
+    </div>
+  </div>
+  <button type="button" @click="ajouterSet">Ajouter un Set</button>
+  <button type="button" @click="supprimerSet(index)">Supprimer ce set</button>
+</div>
 
 
       <button type="submit" class="submit-button">Ajouter le match</button>
