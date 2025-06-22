@@ -1,6 +1,6 @@
 <template>
   <div class="add-match-container">
-
+    <router-link to="/" class="home-link"><Logo /></router-link>
     <!-- Formulaire pour ajouter un joueur -->
     <div class="add-player-container">
       <h2>Ajouter un joueur</h2>
@@ -70,8 +70,8 @@
     <label>Score Sets :</label>
     <div v-for="(set, index) in scoreSetsInputs" :key="index" class="set-input">
       <h4>Set {{ index + 1 }}</h4>
-      <input type="number" v-model.number="set.joueur1" placeholder="Score Joueur 1" required />
-      <input type="number" v-model.number="set.joueur2" placeholder="Score Joueur 2" required />
+      <input type="text" v-model="set.joueur1" placeholder="Score Joueur 1 ou WO" required />
+      <input type="text" v-model="set.joueur2" placeholder="Score Joueur 2 ou WO" required />
     </div>
     <button type="button" @click="ajouterSet">Ajouter un Set</button>
     <button type="button" @click="supprimerSet(index)">Supprimer ce set</button>
@@ -85,8 +85,12 @@
 
 <script>
 import axios from 'axios'
+import Logo from './Logo.vue'
 
 export default {
+  components: {
+    Logo
+  },
   data() {
     return {
       joueurs: [],
@@ -203,7 +207,17 @@ export default {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+.home-link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 25px;
+  transition: transform 0.25s ease;
+}
 
+.home-link:hover {
+  transform: scale(1.1);
+}
 .add-player-container {
   margin-bottom: 30px;
   padding: 20px;
