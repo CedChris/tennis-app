@@ -66,15 +66,16 @@
         </select>
       </div>
 
-      <div class="form-group">
-        <label>Score Sets :</label>
-        <div v-for="(set, index) in scoreSetsInputs" :key="index" class="set-input">
-          <h4>Set {{ index + 1 }}</h4>
-          <input type="number" v-model.number="set.joueur1" placeholder="Score Joueur 1" required />
-          <input type="number" v-model.number="set.joueur2" placeholder="Score Joueur 2" required />
-        </div>
-        <button type="button" @click="ajouterSet">Ajouter un Set</button>
-      </div>
+  <div class="form-group">
+    <label>Score Sets :</label>
+    <div v-for="(set, index) in scoreSetsInputs" :key="index" class="set-input">
+      <h4>Set {{ index + 1 }}</h4>
+      <input type="number" v-model.number="set.joueur1" placeholder="Score Joueur 1" required />
+      <input type="number" v-model.number="set.joueur2" placeholder="Score Joueur 2" required />
+    </div>
+    <button type="button" @click="ajouterSet">Ajouter un Set</button>
+  </div>
+
 
       <button type="submit" class="submit-button">Ajouter le match</button>
     </form>
@@ -100,7 +101,8 @@ export default {
         categorie: '' // Ajout de la catégorie
       },
       scoreSetsInputs: [
-        { joueur1: '', joueur2: '' }
+        { joueur1: 0, joueur2: 0 },
+        { joueur1: 0, joueur2: 0 }
       ]
     }
   },

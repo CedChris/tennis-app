@@ -38,7 +38,7 @@
           </div>
 
           <div v-if="isAuthenticated" class="crud-buttons">
-            <router-link :to="`/edit-match/${match.id}`" class="edit-button">Modifier</router-link>
+            <router-link class="edit-button":to="{ name: 'EditMatch', params: { documentId: match.documentId } }">Modifier</router-link>
             <button @click="deleteMatch(match.documentId)" class="delete-button">Supprimer</button>
           </div>
         </template>
@@ -72,25 +72,25 @@ export default {
       return new Date(dateStr).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     },
     async deleteMatch(documentId) {
-      if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
-        const token = localStorage.getItem('token')
-        if (!token) {
-          alert('Vous devez être connecté pour supprimer un match.')
-          return
-        }
-        try {
-          const response = await axios.delete(`https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${documentId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-          console.log('Réponse suppression:', response)
-          this.matches = this.matches.filter(match => match.documentId !== documentId)
-          alert('Match supprimé avec succès.')
-        } catch (error) {
-          console.error('Erreur lors de la suppression du match', error.response)
-          alert('Erreur lors de la suppression : ' + (error.response?.data?.error?.message || 'Erreur inconnue'))
-        }
-      }
+  if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      alert('Vous devez être connecté pour supprimer un match.')
+      return
     }
+    try {
+      await axios.delete(`https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${documentId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      // Mise à jour locale, on supprime par id (unique dans la liste)
+      this.matches = this.matches.filter(match => match.documentId !== documentId)
+      alert('Match supprimé avec succès.')
+    } catch (error) {
+      console.error('Erreur lors de la suppression du match', error.response)
+      alert('Erreur lors de la suppression : ' + (error.response?.data?.error?.message || 'Erreur inconnue'))
+    }
+  }
+}
   },
   async mounted() {
     try {

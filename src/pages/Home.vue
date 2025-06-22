@@ -87,15 +87,11 @@ export default {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   box-sizing: border-box;
 }
-/* Logo lien */
 .home-link {
-  align-self: center; /* Centrer dans le flex parent */
+  align-self: center;
   margin-bottom: 25px;
   display: inline-flex;
   transition: transform 0.25s ease;
-}
-.home-link:hover {
-  transform: scale(1.05);
 }
 .date-container {
   margin-top: 20px;
@@ -198,8 +194,11 @@ export default {
     font-size: 1rem;
   }
   .home-link {
-    margin-bottom: 15px;
-  }
+  align-self: center; /* Centrer dans le flex parent */
+  margin-bottom: 25px;
+  display: inline-flex;
+  transition: transform 0.25s ease;
+}
   .add-match-button {
     display: block; /* Pour que le bouton prenne toute la largeur */
     width: 100%;
