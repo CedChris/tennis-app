@@ -18,7 +18,41 @@
         <button type="submit" class="submit-button">Ajouter le joueur</button>
       </form>
     </div>
+<div class="player-list" @click.outside="dropdownOpen = false">
+    <h3>Liste des joueurs</h3>
 
+    <!-- Barre de recherche -->
+    <input
+      type="text"
+      v-model="searchQuery"
+      @input="handleInput"
+      placeholder="Rechercher un joueur..."
+      class="search-bar"
+    />
+
+    <!-- Dropdown personnalisé -->
+    <div class="dropdown" v-if="dropdownOpen && filteredPlayers.length">
+      <ul>
+        <li 
+          v-for="joueur in filteredPlayers" 
+          :key="joueur.id" 
+          @click="selectPlayer(joueur)"
+          class="dropdown-item"
+        >
+          {{ joueur.nom }} ({{ joueur.classement }})
+        </li>
+      </ul>
+    </div>
+
+    <!-- Bouton suppression -->
+    <button 
+      @click="removeSelectedPlayer" 
+      :disabled="!selectedPlayer" 
+      class="delete-button"
+    >
+      Supprimer le joueur sélectionné
+    </button>
+  </div>
     <!-- Formulaire pour ajouter un match -->
     <h2>Ajouter un match</h2>
     <form @submit.prevent="addMatch">
@@ -96,7 +130,6 @@
   <button type="button" @click="supprimerSet(index)">Supprimer ce set</button>
 </div>
 
-
       <button type="submit" class="submit-button">Ajouter le match</button>
     </form>
   </div>
@@ -113,6 +146,9 @@ export default {
   data() {
     return {
       joueurs: [],
+      selectedPlayer: null,
+      dropdownOpen: false,
+      searchQuery: '',      // ID du joueur sélectionné
       newPlayer: {
         nom: '',
         classement: ''
@@ -128,6 +164,14 @@ export default {
         { joueur1: 0, joueur2: 0 },
         { joueur1: 0, joueur2: 0 }
       ]
+    }
+  },
+  computed: {
+    filteredPlayers() {
+      if (!this.searchQuery) return [];
+      return this.joueurs.filter(joueur =>
+        joueur.nom.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
     }
   },
   async mounted() {
@@ -171,7 +215,89 @@ export default {
         console.error('Erreur lors de l\'ajout du joueur', error)
         alert('Erreur lors de l\'ajout du joueur.')
       }
-    },validateScores() {
+    },
+    handleInput() {
+      if (this.searchQuery.trim()) {
+        this.dropdownOpen = true;
+      } else {
+        this.dropdownOpen = false;
+      }
+    },
+    selectPlayer(joueur) {
+      this.selectedPlayer = joueur;
+      this.searchQuery = joueur.nom;
+      this.dropdownOpen = false;
+    },
+    async removeSelectedPlayer() {
+      if (!this.selectedPlayer) return;
+      await this.removeByDocumentId(this.selectedPlayer.documentId);
+      this.selectedPlayer = null;
+      this.searchQuery = '';
+    },
+async removeByDocumentId(docId) {
+  console.log('Tentative de suppression du joueur avec documentId :', docId);
+
+  if (!confirm('Voulez-vous vraiment supprimer cet élément ?')) {
+    console.log('Suppression annulée par l’utilisateur.');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    console.log('Token récupéré :', token);
+
+    if (!token) {
+      alert('Veuillez vous reconnecter.');
+      console.log('Token non trouvé, opération annulée.');
+      return;
+    }
+
+    // 1. Récupérer l'entrée
+    console.log('Recherche du joueur avec documentId...');
+    const res = await axios.get(
+      `https://ancient-purpose-79e6e65b06.strapiapp.com/api/joueurs`,
+      {
+        params: { filters: { documentId: docId } },
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+
+    console.log('Résultat de la recherche :', res.data);
+
+    const data = res.data.data;
+
+    if (!data.length) {
+      alert('Élément non trouvé.');
+      console.log('Aucun joueur trouvé avec ce documentId.');
+      return;
+    }
+
+    const internalId = data[0].documentId;
+    console.log('ID interne récupéré :', internalId);
+
+    // 2. Supprimer via l'id interne
+    console.log(`Suppression du joueur avec ID interne : ${internalId}...`);
+    const del = await axios.delete(
+      `https://ancient-purpose-79e6e65b06.strapiapp.com/api/joueurs/${internalId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    console.log('Statut de la suppression :', del.status);
+
+    if ([200, 204].includes(del.status)) {
+      alert('Suppression réussie !');
+      console.log('Joueur supprimé avec succès.');
+      await this.fetchPlayers(); // rafraîchir la liste
+    } else {
+      alert('Erreur lors de la suppression.');
+      console.log('Erreur : Suppression échouée, statut inattendu.');
+    }
+  } catch (e) {
+    console.error('Erreur pendant la suppression :', e);
+    alert('Erreur bloquante pendant la suppression.');
+  }
+},
+  validateScores() {
   for (let set of this.scoreSetsInputs) {
     const isJoueur1Valid = !isNaN(set.joueur1) || set.joueur1.toUpperCase() === 'WO';
     const isJoueur2Valid = !isNaN(set.joueur2) || set.joueur2.toUpperCase() === 'WO';
@@ -336,7 +462,34 @@ button[type="button"] {
 button[type="button"]:hover {
   background-color: #2471a3;
 }
+.search-bar {
+  padding: 5px;
+  width: 200px;
+}
 
+.dropdown {
+  border: 1px solid #ccc;
+  max-height: 200px;
+  overflow-y: auto;
+  width: 220px;
+  background-color: white;
+  position: absolute;
+  z-index: 100;
+}
+
+.dropdown-item {
+  padding: 5px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+
+.delete-button {
+  margin-top: 10px;
+  padding: 5px 10px;
+}
 @media (max-width: 600px) {
   .set-input {
     grid-template-columns: 1fr;
