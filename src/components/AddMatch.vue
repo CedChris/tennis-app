@@ -152,7 +152,16 @@ export default {
         console.error('Erreur lors de l\'ajout du joueur', error)
         alert('Erreur lors de l\'ajout du joueur.')
       }
-    },
+    },validateScores() {
+  for (let set of this.scoreSetsInputs) {
+    const isJoueur1Valid = !isNaN(set.joueur1) || set.joueur1.toUpperCase() === 'WO';
+    const isJoueur2Valid = !isNaN(set.joueur2) || set.joueur2.toUpperCase() === 'WO';
+    if (!isJoueur1Valid || !isJoueur2Valid) {
+      return false;
+    }
+  }
+  return true;
+},
     ajouterSet() {
       this.scoreSetsInputs.push({ joueur1: '', joueur2: '' })
     },
@@ -164,35 +173,43 @@ export default {
   }
 },
     async addMatch() {
-      try {
-        const token = localStorage.getItem('token')
-        const payload = {
-          data: {
-            joueur1: { id: this.match.joueur1 },
-            joueur2: { id: this.match.joueur2 },
-            terrain: this.match.terrain,
-            date: this.match.date,
-            categorie: this.match.categorie, // Envoi de la catégorie
-            scoreSets: this.scoreSetsInputs
-          }
-        }
+  if (!this.validateScores()) {
+    alert('Veuillez entrer des scores valides. Un score doit être un nombre ou "WO".');
+    return;
+  }
 
-        console.log('Payload envoyé :', JSON.stringify(payload, null, 2))
-
-        await axios.post('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches', payload, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-
-        alert('Match ajouté avec succès !')
-        this.$router.push('/')
-      } catch (error) {
-        console.error('Erreur lors de l\'ajout du match', error)
-        console.error('Détails de l\'erreur :', error.response?.data)
-        alert('Erreur lors de l\'ajout du match.')
+  try {
+    const token = localStorage.getItem('token')
+    const payload = {
+      data: {
+        joueur1: { id: this.match.joueur1 },
+        joueur2: { id: this.match.joueur2 },
+        terrain: this.match.terrain,
+        date: this.match.date,
+        categorie: this.match.categorie,
+        scoreSets: this.scoreSetsInputs.map(set => ({
+          joueur1: set.joueur1.toString().toUpperCase(),
+          joueur2: set.joueur2.toString().toUpperCase()
+        }))
       }
     }
+
+    console.log('Payload envoyé :', JSON.stringify(payload, null, 2))
+
+    await axios.post('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches', payload, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    alert('Match ajouté avec succès !')
+    this.$router.push('/')
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout du match', error)
+    console.error('Détails de l\'erreur :', error.response?.data)
+    alert('Erreur lors de l\'ajout du match.')
+  }
+}
   }
 }
 </script>
