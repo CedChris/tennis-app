@@ -181,8 +181,13 @@ ul {
 }
 
 .joueur1, .joueur2 {
-  white-space: normal;        /* Les noms restent sur une seule ligne */
+  display: flex;
+  flex-direction: column; /* Aligne les enfants verticalement */
+  align-items: flex-start; /* Aligne à gauche (tu peux mettre "center" si tu préfères centré) */
+  gap: 4px; /* Espacement entre les éléments */
   font-weight: 1000;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .joueur1 {
