@@ -133,6 +133,12 @@
       <button type="submit" class="submit-button">Ajouter le match</button>
     </form>
   </div>
+  <div v-if="popup.visible" class="popup-overlay">
+  <div class="popup">
+    <p>{{ popup.message }}</p>
+    <button @click="popup.visible = false">Fermer</button>
+  </div>
+</div>
 </template>
 
 <script>
@@ -153,6 +159,10 @@ export default {
         nom: '',
         classement: ''
       },
+      popup: {
+  visible: false,
+  message: ''
+},
       match: {
         joueur1: '',
         joueur2: '',
@@ -188,7 +198,7 @@ export default {
     },
     async addPlayer() {
       if (!this.newPlayer.nom.trim() || !this.newPlayer.classement.trim()) {
-        alert('Le nom et le classement du joueur ne peuvent pas être vides.')
+        this.showPopup('Le nom et le classement du joueur ne peuvent pas être vides.')
         return
       }
 
@@ -207,13 +217,13 @@ export default {
           }
         })
 
-        alert('Joueur ajouté avec succès !')
+        this.showPopup('Joueur ajouté avec succès !')
         this.newPlayer.nom = ''
         this.newPlayer.classement = ''
         await this.fetchPlayers()
       } catch (error) {
         console.error('Erreur lors de l\'ajout du joueur', error)
-        alert('Erreur lors de l\'ajout du joueur.')
+        this.showPopup('Erreur lors de l\'ajout du joueur.')
       }
     },
     handleInput() {
@@ -234,6 +244,10 @@ export default {
       this.selectedPlayer = null;
       this.searchQuery = '';
     },
+    showPopup(message) {
+  this.popup.message = message
+  this.popup.visible = true
+},
 async removeByDocumentId(docId) {
   console.log('Tentative de suppression du joueur avec documentId :', docId);
 
@@ -247,7 +261,7 @@ async removeByDocumentId(docId) {
     console.log('Token récupéré :', token);
 
     if (!token) {
-      alert('Veuillez vous reconnecter.');
+      this.showPopup('Veuillez vous reconnecter.');
       console.log('Token non trouvé, opération annulée.');
       return;
     }
@@ -267,7 +281,7 @@ async removeByDocumentId(docId) {
     const data = res.data.data;
 
     if (!data.length) {
-      alert('Élément non trouvé.');
+      this.showPopup('Élément non trouvé.');
       console.log('Aucun joueur trouvé avec ce documentId.');
       return;
     }
@@ -285,16 +299,16 @@ async removeByDocumentId(docId) {
     console.log('Statut de la suppression :', del.status);
 
     if ([200, 204].includes(del.status)) {
-      alert('Suppression réussie !');
+      this.showPopup('Suppression réussie !');
       console.log('Joueur supprimé avec succès.');
       await this.fetchPlayers(); // rafraîchir la liste
     } else {
-      alert('Erreur lors de la suppression.');
+      this.showPopup('Erreur lors de la suppression.');
       console.log('Erreur : Suppression échouée, statut inattendu.');
     }
   } catch (e) {
     console.error('Erreur pendant la suppression :', e);
-    alert('Erreur bloquante pendant la suppression.');
+    this.showPopup('Erreur bloquante pendant la suppression.');
   }
 },
   validateScores() {
@@ -314,12 +328,12 @@ async removeByDocumentId(docId) {
   if (this.scoreSetsInputs.length > 1) {
     this.scoreSetsInputs.splice(index, 1);
   } else {
-    alert('Il doit rester au moins un set.');
+    this.showPopup('Il doit rester au moins un set.');
   }
 },
     async addMatch() {
   if (!this.validateScores()) {
-    alert('Veuillez entrer des scores valides. Un score doit être un nombre ou "WO".');
+    this.showPopup('Veuillez entrer des scores valides. Un score doit être un nombre ou "WO".');
     return;
   }
 
@@ -347,12 +361,12 @@ async removeByDocumentId(docId) {
       }
     })
 
-    alert('Match ajouté avec succès !')
+    this.showPopup('Match ajouté avec succès !')
     this.$router.push('/')
   } catch (error) {
     console.error('Erreur lors de l\'ajout du match', error)
     console.error('Détails de l\'erreur :', error.response?.data)
-    alert('Erreur lors de l\'ajout du match.')
+    this.showPopup('Erreur lors de l\'ajout du match.')
   }
 }
   }
@@ -489,6 +503,40 @@ button[type="button"]:hover {
 .delete-button {
   margin-top: 10px;
   padding: 5px 10px;
+}
+  .popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.popup {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.25);
+  text-align: center;
+}
+
+.popup button {
+  margin-top: 15px;
+  padding: 8px 16px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.popup button:hover {
+  background-color: #2980b9;
 }
 @media (max-width: 600px) {
   .set-input {
