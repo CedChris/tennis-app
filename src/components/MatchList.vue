@@ -50,12 +50,6 @@
       </li>
     </ul>
   </div>
-  <div v-if="popup.visible" class="popup-overlay">
-  <div class="popup">
-    <p>{{ popup.message }}</p>
-    <button @click="popup.visible = false">Fermer</button>
-  </div>
-</div>
 </template>
 
 <script>
@@ -82,7 +76,7 @@ export default {
   if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
     const token = localStorage.getItem('token')
     if (!token) {
-      this.showPopup('Vous devez être connecté pour supprimer un match.')
+      alert('Vous devez être connecté pour supprimer un match.')
       return
     }
     try {
@@ -91,10 +85,10 @@ export default {
       })
       // Mise à jour locale, on supprime par id (unique dans la liste)
       this.matches = this.matches.filter(match => match.documentId !== documentId)
-      this.showPopup('Match supprimé avec succès.')
+      alert('Match supprimé avec succès.')
     } catch (error) {
       console.error('Erreur lors de la suppression du match', error.response)
-      this.showPopup('Erreur lors de la suppression : ' + (error.response?.data?.error?.message || 'Erreur inconnue'))
+      alert('Erreur lors de la suppression : ' + (error.response?.data?.error?.message || 'Erreur inconnue'))
     }
   }
 }
