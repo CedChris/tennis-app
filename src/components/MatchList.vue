@@ -68,15 +68,7 @@ export default {
       matches: []
     }
   },
-  popup: {
-  visible: false,
-  message: ''
-}
   methods: {
-  showPopup(message) {
-  this.popup.message = message
-  this.popup.visible = true
-},
     getNomJoueur(match, joueurKey) {
       return match?.[joueurKey]?.nom || 'Inconnu'
     },
