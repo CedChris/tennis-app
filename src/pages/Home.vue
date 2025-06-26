@@ -4,7 +4,7 @@
 
     <template v-if="isAuthenticated">
       <button @click="logout" class="logout-button">Se déconnecter</button>
-      <router-link to="/add-match" class="add-match-button">Ajouter un match/joueur</router-link>
+      <router-link to="/add-match" class="add-match-button">Gestion des matches/joueurs</router-link>
       <button @click="updateDate">Changer la date</button>
     </template>
     <template v-else>
