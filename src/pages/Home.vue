@@ -142,7 +142,24 @@ export default {
   background-color: #c0392b;
   box-shadow: 0 4px 12px rgba(192,57,43,0.5);
 }
+.event-dropdown {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  max-width: 300px;
+}
 
+.event-dropdown label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.event-dropdown select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
 /* Bouton ajouter un match */
 .add-match-button {
   display: inline-block;
