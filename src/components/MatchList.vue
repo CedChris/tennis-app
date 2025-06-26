@@ -39,8 +39,8 @@
           </div>
 
           <div v-if="isAuthenticated" class="crud-buttons">
-            <router-link class="edit-button":to="{ name: 'EditMatch', params: { documentId: match.documentId } }">Modifier</router-link>
-            <button @click="deleteMatch(match.documentId)" class="delete-button">Supprimer</button>
+            <router-link class="edit-button":to="{ name: 'EditMatch', params: { documentId: match.documentId } }">✏️</router-link>
+            <button @click="deleteMatch(match.documentId)" class="delete-button">🗑️</button>
           </div>
         </template>
 
