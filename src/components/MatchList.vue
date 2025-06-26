@@ -183,7 +183,7 @@ ul {
 .joueur1, .joueur2 {
   display: flex;
   flex-direction: column; /* Aligne les enfants verticalement */
-  align-items: flex-start; /* Aligne à gauche (tu peux mettre "center" si tu préfères centré) */
+  align-items: center; /* Aligne à gauche (tu peux mettre "center" si tu préfères centré) */
   gap: 4px; /* Espacement entre les éléments */
   font-weight: 1000;
   white-space: normal;
