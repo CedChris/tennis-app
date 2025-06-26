@@ -7,10 +7,10 @@
           <div class="players">
             <strong class="joueur1">
               {{ getNomJoueur(match, 'joueur1') }}
-              <span v-if="getClassement(match, 'joueur1')" class="classement">
                 ({{ getClassement(match, 'joueur1') }})
               </span>
             </strong>
+            <span v-if="getClassement(match, 'joueur1')" class="classement">
             <span class="vs">vs</span>
             <strong class="joueur2">
               {{ getNomJoueur(match, 'joueur2') }}
