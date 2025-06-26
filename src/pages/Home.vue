@@ -6,6 +6,8 @@
       <button @click="logout" class="logout-button">Se déconnecter</button>
       <router-link to="/add-match" class="add-match-button">Gestion des matches/joueurs</router-link>
       <button @click="updateDate">Changer la date</button>
+
+      <!-- Menu déroulant pour les événements -->
       <div v-if="events.length" class="event-dropdown">
         <label for="eventSelect">Événement en cours :</label>
         <select id="eventSelect" v-model="selectedEvent">
@@ -16,6 +18,7 @@
         </select>
       </div>
     </template>
+
     <template v-else>
       <div class="login-container">
         <router-link to="/login" class="login-link">Se connecter</router-link>
@@ -24,11 +27,12 @@
         </p>
       </div>
     </template>
-<div class="date-container">
+
+    <div class="date-container">
       Date : {{ currentDate }}
     </div>
+
     <MatchList :isAuthenticated="isAuthenticated" />
-    
   </div>
 </template>
 
@@ -47,7 +51,7 @@ export default {
       isAuthenticated: false,
       currentDate: '',
       events: [],
-      selectedEvent: ''// Ajout de la date ici
+      selectedEvent: ''
     }
   },
   mounted() {
@@ -56,13 +60,15 @@ export default {
       this.isAuthenticated = true
     }
 
-    // Charger la date depuis localStorage ou définir la date du jour
+    // Charger la date
     const savedDate = localStorage.getItem('currentDate')
     if (savedDate) {
       this.currentDate = savedDate
     } else {
       this.updateDate()
     }
+
+    // Charger les événements depuis localStorage
     const savedEvents = localStorage.getItem('events')
     if (savedEvents) {
       try {
@@ -84,12 +90,11 @@ export default {
       const month = String(today.getMonth() + 1).padStart(2, '0')
       const year = today.getFullYear()
       this.currentDate = `${day}/${month}/${year}`
-      localStorage.setItem('currentDate', this.currentDate)  // Sauvegarde dans localStorage
+      localStorage.setItem('currentDate', this.currentDate)
     }
   }
 }
 </script>
-
 <style>
 .container {
   width: 90vw;          /* largeur à 90% de la largeur de la fenêtre */
