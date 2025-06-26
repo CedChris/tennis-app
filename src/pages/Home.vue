@@ -6,6 +6,15 @@
       <button @click="logout" class="logout-button">Se déconnecter</button>
       <router-link to="/add-match" class="add-match-button">Gestion des matches/joueurs</router-link>
       <button @click="updateDate">Changer la date</button>
+      <div v-if="events.length" class="event-dropdown">
+        <label for="eventSelect">Événement en cours :</label>
+        <select id="eventSelect" v-model="selectedEvent">
+          <option disabled value="">-- Choisir un événement --</option>
+          <option v-for="(event, index) in events" :key="index" :value="event">
+            {{ event }}
+          </option>
+        </select>
+      </div>
     </template>
     <template v-else>
       <div class="login-container">
@@ -36,7 +45,9 @@ export default {
   data() {
     return {
       isAuthenticated: false,
-      currentDate: ''  // Ajout de la date ici
+      currentDate: '',
+      events: [],
+      selectedEvent: ''// Ajout de la date ici
     }
   },
   mounted() {
@@ -51,6 +62,14 @@ export default {
       this.currentDate = savedDate
     } else {
       this.updateDate()
+    }
+    const savedEvents = localStorage.getItem('events')
+    if (savedEvents) {
+      try {
+        this.events = JSON.parse(savedEvents)
+      } catch (e) {
+        console.error('Échec de la lecture des événements du localStorage', e)
+      }
     }
   },
   methods: {
