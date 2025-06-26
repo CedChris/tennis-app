@@ -180,7 +180,7 @@ ul {
 }
 
 .joueur1, .joueur2 {
-  white-space: nowrap;        /* Les noms restent sur une seule ligne */
+  white-space: normal;        /* Les noms restent sur une seule ligne */
   font-weight: 1000;
 }
 
