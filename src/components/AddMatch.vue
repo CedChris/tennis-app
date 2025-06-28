@@ -58,9 +58,9 @@
     <form @submit.prevent="addMatch">
       <div class="form-group">
         <label for="joueur1">Joueur 1 :</label>
-        <select v-model="match.joueur1" required>
+        <select v-model="match.joueur1DocumentId" required>
           <option disabled value="">Sélectionnez le joueur 1</option>
-          <option v-for="joueur in joueurs" :key="joueur.id" :value="joueur.id">
+          <option v-for="joueur in joueurs" :key="joueur.id" :value="joueur.documentId">
             {{ joueur.nom }} ({{ joueur.classement }})
           </option>
         </select>
@@ -68,9 +68,9 @@
 
       <div class="form-group">
         <label for="joueur2">Joueur 2 :</label>
-        <select v-model="match.joueur2" required>
+        <select v-model="match.joueur2DocumentId" required>
           <option disabled value="">Sélectionnez le joueur 2</option>
-          <option v-for="joueur in joueurs" :key="joueur.id" :value="joueur.id">
+          <option v-for="joueur in joueurs" :key="joueur.id" :value="joueur.documentId">
             {{ joueur.nom }} ({{ joueur.classement }})
           </option>
         </select>
@@ -341,8 +341,16 @@ async removeByDocumentId(docId) {
     const token = localStorage.getItem('token')
     const payload = {
       data: {
-        joueur1: { id: this.match.joueur1 },
-        joueur2: { id: this.match.joueur2 },
+    joueur1: {
+      connect: {
+        documentId: this.match.joueur1DocumentId
+      }
+    },
+    joueur2: {
+      connect: {
+        documentId: this.match.joueur2DocumentId
+      }
+    },
         terrain: this.match.terrain,
         date: this.match.date,
         categorie: this.match.categorie,
