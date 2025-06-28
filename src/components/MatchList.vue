@@ -96,7 +96,9 @@ export default {
   async mounted() {
     try {
       const matchesRes = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches?populate[joueur1]=true&populate[joueur2]=true')
-      this.matches = matchesRes.data.data.filter(match => match.joueur1 && match.joueur2)
+      this.matches = matchesRes.data.data
+      .filter(match => match.joueur1 && match.joueur2)
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
     } catch (error) {
       console.error('Erreur lors de la récupération des matchs', error)
     }
@@ -266,38 +268,45 @@ ul {
 }
 
 /* BOUTONS EDITION & SUPPRESSION */
-.crud-buttons {
-  margin-top: 12px;
-  display: flex;
-  gap: 10px;
+.crud-buttons a,
+.crud-buttons button {
+  display: inline-flex;       /* pour centrer l'icône verticalement */
+  align-items: center;
   justify-content: center;
-}
-
-.edit-button {
-  background-color: #3498db;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 4px;
-  text-decoration: none;
-}
-
-.edit-button:hover {
-  background-color: #2980b9;
-}
-
-.delete-button {
-  background-color: #e74c3c;
-  color: white;
-  padding: 6px 12px;
+  text-decoration: none;      /* enlève le soulignement des <a> */
   border: none;
+  background: #eee;
+  color: #333;
+  padding: 0.5em 0.6em;
+  font-size: 1.2em;
   border-radius: 4px;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.delete-button:hover {
-  background-color: #c0392b;
+/* Hover effet */
+.crud-buttons a:hover,
+.crud-buttons button:hover {
+  background: #ddd;
 }
 
+/* Exemple de couleur différente pour supprimer */
+.crud-buttons .delete-button {
+  background: #f8d7da;
+  color: #721c24;
+}
+.crud-buttons .delete-button:hover {
+  background: #f5c6cb;
+}
+
+/* Exemple de couleur différente pour éditer */
+.crud-buttons .edit-button {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+.crud-buttons .edit-button:hover {
+  background: #bee5eb;
+}
 /* CLASSEMENT */
 .classement {
   font-size: 1rem;
