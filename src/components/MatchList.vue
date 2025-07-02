@@ -24,8 +24,23 @@
           <div class="score">
             <template v-if="match.scoreSets && match.scoreSets.length">
               <span v-for="(set, index) in match.scoreSets" :key="index" class="set-score">
-                <span class="score-joueur1">{{ set.joueur1 }}</span> - <span class="score-joueur2">{{ set.joueur2 }}</span> 
-              </span>
+  <div class="score-controls">
+    
+    <div v-if="isAuthenticated" class="score-buttons">
+      <button @click="updateScore(match, index, 'joueur1', 1)">+</button>
+      <span class="score-joueur1">{{ set.joueur1 }}</span>
+      <button @click="updateScore(match, index, 'joueur1', -1)">–</button>
+    </div>
+  </div>
+  <div class="score-controls">
+    
+    <div v-if="isAuthenticated" class="score-buttons">
+      <button @click="updateScore(match, index, 'joueur2', 1)">+</button>
+      <span class="score-joueur2">{{ set.joueur2 }}</span>
+      <button @click="updateScore(match, index, 'joueur2', -1)">–</button>
+    </div>
+  </div>
+</span>
             </template>
             <template v-else>
               {{ match.score || 'Pas encore joué' }}
@@ -50,6 +65,77 @@
       </li>
     </ul>
   </div>
+  <!-- TEMPLATE HORIZONTAL D’AFFICHAGE DES RÉSULTATS -->
+<div class="match-list-horizontal" v-if="affichageAlternatif">
+  <table class="match-table">
+  <thead>
+    <tr>
+      <th>Joueurs</th>
+      <th>Terrain</th>
+      <th>Heure</th>
+      <th>Catégorie</th>
+      <th v-if="isAuthenticated">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-for="match in matches" :key="match.id">
+      <td class="players-cell">
+        <span class="joueur1">
+          {{ getNomJoueur(match, 'joueur1') }}
+          <span v-if="getClassement(match, 'joueur1')">
+            ({{ getClassement(match, 'joueur1') }})
+          </span>
+        </span>
+        <span>vs</span>
+        <span class="joueur2">
+          {{ getNomJoueur(match, 'joueur2') }}
+          <span v-if="getClassement(match, 'joueur2')">
+            ({{ getClassement(match, 'joueur2') }})
+          </span>
+        </span>
+      </td>
+      
+      <td class="score-cell">
+        <template v-if="match.scoreSets && match.scoreSets.length">
+          <span
+            v-for="(set, index) in match.scoreSets"
+            :key="index"
+            class="set-score-horizontal"
+          >
+            <div class="score-joueur1" v-if="isAuthenticated">
+              <button @click="updateScore(match, index, 'joueur1', 1)">+</button>
+              {{ set.joueur1 }}
+              <button @click="updateScore(match, index, 'joueur1', -1)">–</button>
+            </div>
+            <span>:</span>
+            <div class="score-joueur2" v-if="isAuthenticated">
+              <button @click="updateScore(match, index, 'joueur2', 1)">+</button>
+              {{ set.joueur2 }}
+              <button @click="updateScore(match, index, 'joueur2', -1)">–</button>
+            </div>
+          </span>
+        </template>
+        <template v-else>
+          {{ match.score || 'Pas encore joué' }}
+        </template>
+      </td>
+
+      <td>{{ match.terrain }}</td>
+      <td>{{ formatTime(match.date) }}</td>
+      <td>{{ match.categorie }}</td>
+
+      <td v-if="isAuthenticated" class="crud-buttons-horizontal">
+        <router-link :to="{ name: 'EditMatch', params: { documentId: match.documentId } }" class="edit-button">✏️</router-link>
+        <button @click="deleteMatch(match.documentId)" class="delete-button">🗑️</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<label>
+  <input type="checkbox" v-model="affichageAlternatif" />
+  Mode d'affichage alternatif
+</label>
 </template>
 
 <script>
@@ -59,10 +145,44 @@ export default {
   props: ['isAuthenticated'],
   data() {
     return {
-      matches: []
+      matches: [],
+      affichageAlternatif: false
     }
   },
   methods: {
+  async updateScore(match, setIndex, joueurKey, increment) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Vous devez être connecté pour modifier le score.');
+      return;
+    }
+    // Clone le tableau pour éviter mutation directe
+    const newScoreSets = JSON.parse(JSON.stringify(match.scoreSets));
+    const currentScore = newScoreSets[setIndex][joueurKey];
+    // On évite les scores négatifs
+    const updatedScore = Math.max(0, currentScore + increment);
+    newScoreSets[setIndex][joueurKey] = updatedScore;
+
+    try {
+      // Appel API pour mettre à jour
+      await axios.put(
+        `https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${match.documentId}`,
+        {
+          data: {
+            scoreSets: newScoreSets
+          }
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      // Mise à jour locale du score
+      match.scoreSets = newScoreSets;
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du score', error.response);
+      alert('Erreur lors de la mise à jour : ' + (error.response?.data?.error?.message || 'Erreur inconnue'));
+    }
+  },
     getNomJoueur(match, joueurKey) {
       return match?.[joueurKey]?.nom || 'Inconnu'
     },
@@ -242,7 +362,23 @@ ul {
   color: #fff;
   justify-content: center;
 }
-
+.score-buttons {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 6px;
+}
+.score-buttons button {
+  background: #d1ecf1;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.score-buttons button:hover {
+  background: #bee5eb;
+}
 .terrain, .date, .time {
   background-color: #34495e;
   padding: 6px 12px;
@@ -318,9 +454,155 @@ ul {
   background-color: #f1c40f; /* Fond léger, discret */
   display: inline-block;
 }
+.match-list-horizontal {
+  max-width: 100%;
+  overflow-x: auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #222;
+  font-size: 1.1rem; /* agrandi globalement */
+}
 
+.match-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px; /* un peu plus large */
+  box-shadow: 0 3px 12px rgb(0 0 0 / 0.15);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.match-table thead {
+  background: linear-gradient(90deg, #1e3a8a, #2563eb);
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  letter-spacing: 1.2px;
+}
+
+.match-table th,
+.match-table td {
+  padding: 16px 20px;
+  border-bottom: 1.5px solid #d1d5db;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 1.1rem;
+}
+
+.match-table tbody tr:hover {
+  background-color: #e0e7ff; /* un bleu clair très doux */
+  cursor: pointer;
+}
+
+.players-cell {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  align-items: center;
+  font-weight: 700;
+  color: #111827; /* presque noir */
+}
+
+.players-cell span.player-name {
+  white-space: nowrap;
+}
+
+.players-cell span.player-name span {
+  font-weight: 500;
+  color: #6b7280; /* gris-500 */
+  font-size: 0.95rem;
+  margin-left: 6px;
+}
+
+.score-cell {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-weight: 700;
+  font-size: 1.25rem; /* un peu plus grand */
+}
+
+.set-score-horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #dbeafe; /* bleu très clair */
+  padding: 8px 14px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 6px #93c5fd;
+  user-select: none;
+}
+
+.score-joueur1 button,
+.score-joueur2 button {
+  background: transparent;
+  border: none;
+  color: #555;
+  padding: 2px 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.score-joueur1 button:hover,
+.score-joueur2 button:hover {
+  text-decoration: underline;
+}
+.score-buttons-horizontal button:hover {
+  background-color: #1e40af;
+}
+
+.crud-buttons-horizontal {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 1.5rem;
+}
+
+.edit-button, .delete-button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: color 0.3s ease, background-color 0.3s ease;
+  user-select: none;
+}
+
+.edit-button {
+  color: #2563eb;
+}
+
+.edit-button:hover {
+  color: #1e40af;
+  background-color: #dbeafe;
+}
+
+.delete-button {
+  color: #dc2626;
+}
+
+.delete-button:hover {
+  color: #b91c1c;
+  background-color: #fee2e2;
+}
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
+.players-cell {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .score-cell {
+    justify-content: flex-start;
+  }
+
+  .crud-buttons-horizontal {
+    justify-content: flex-start;
+  }
   .match-list-container {
     width: 100%;
     max-width: 100%;
