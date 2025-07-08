@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isAuthenticated" class="date-filter">
+  <div class="date-filter">
   <label for="date">Filtrer par date :</label>
   <input
     type="date"
