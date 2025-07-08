@@ -1,57 +1,43 @@
 <template>
   <div class="container">
-    <router-link to="/" class="home-link"><Logo /></router-link>
+    <div class="header-container">
+  <router-link to="/" class="home-link">
+    <Logo />
+  </router-link>
 
+  <nav class="nav-links">
     <template v-if="isAuthenticated">
-      <button @click="logout" class="logout-button">Se déconnecter</button>
-      <router-link to="/add-match" class="add-match-button">Gestion des matches/joueurs</router-link>
-      <button @click="updateDate">Changer la date</button>
-
-      <!-- Menu déroulant pour les événements -->
-      <div v-if="events.length" class="event-dropdown">
-        <label for="eventSelect">Événement en cours :</label>
-        <select id="eventSelect" v-model="selectedEvent">
-          <option disabled value="">-- Choisir un événement --</option>
-          <option v-for="(event, index) in events" :key="index" :value="event">
-            {{ event }}
-          </option>
-        </select>
-      </div>
+      <router-link to="/add-match" class="nav-link">Gestion des matches/joueurs</router-link>
+      <a href="#" class="nav-link" @click.prevent="logout">Se déconnecter</a>
     </template>
 
     <template v-else>
-      <div class="login-container">
-        <router-link to="/login" class="login-link">Se connecter</router-link>
-        <p class="warning-text">
-          ⚠️ Se connecter est utile uniquement pour les organisateurs du tournoi.
-        </p>
-      </div>
+      <router-link to="/login" class="nav-link">Se connecter</router-link>
     </template>
-
-    <div class="date-container">
-      Date : {{ currentDate }}
-    </div>
-
+  </nav>
+</div>
+<Blog/>
     <MatchList :isAuthenticated="isAuthenticated" />
   </div>
 </template>
-
 <script>
 import MatchList from '../components/MatchList.vue'
 import Logo from '../components/Logo.vue'
+import Blog from '../components/Blog.vue'
 
 export default {
   name: 'Home',
   components: {
     MatchList,
-    Logo
+    Logo,
+    Blog
   },
   data() {
     return {
       isAuthenticated: false,
-      currentDate: '',
       events: [],
-      selectedEvent: ''
+      selectedEvent: '',
+      showMenu: false,
     }
   },
   mounted() {
@@ -59,26 +45,14 @@ export default {
     if (token) {
       this.isAuthenticated = true
     }
-
-    // Charger la date
-    const savedDate = localStorage.getItem('currentDate')
-    if (savedDate) {
-      this.currentDate = savedDate
-    } else {
-      this.updateDate()
-    }
-
-    // Charger les événements depuis localStorage
-    const savedEvents = localStorage.getItem('events')
-    if (savedEvents) {
-      try {
-        this.events = JSON.parse(savedEvents)
-      } catch (e) {
-        console.error('Échec de la lecture des événements du localStorage', e)
-      }
-    }
   },
   methods: {
+    toggleMenu() {
+  this.showMenu = !this.showMenu;
+},
+goToManage() {
+  this.$router.push('/add-match');
+},
     logout() {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
@@ -97,8 +71,8 @@ export default {
 </script>
 <style>
 .container {
-  width: 90vw;          /* largeur à 90% de la largeur de la fenêtre */
-  max-width: 1400px;    /* limite max pour ne pas trop étirer */
+  width: 90vw;
+  max-width: 1400px;
   margin: 30px auto;
   padding: 20px 30px 40px;
   background-color: #fafafa;
@@ -111,144 +85,50 @@ export default {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   box-sizing: border-box;
 }
-.home-link {
-  align-self: center;
-  margin-bottom: 25px;
-  display: inline-flex;
-  transition: transform 0.25s ease;
-}
-.date-container {
-  margin-top: 20px;
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #333;
-  text-align: center;
-}
-/* Bouton déconnexion */
-.logout-button {
-  background-color: #e74c3c;
-  color: white;
-  padding: 10px 24px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: 15px;
-  align-self: flex-end;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-.logout-button:hover {
-  background-color: #c0392b;
-  box-shadow: 0 4px 12px rgba(192,57,43,0.5);
-}
-.event-dropdown {
-  margin-top: 20px;
+
+.header-container {
   display: flex;
   flex-direction: column;
-  max-width: 300px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background-color: #f9f9f9;
 }
 
-.event-dropdown label {
-  font-weight: bold;
-  margin-bottom: 5px;
+.home-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #ddd;
+  margin-bottom: 20px;
 }
 
-.event-dropdown select {
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 16px;
+.nav-links {
+  display: flex;
+  gap: 12px;
 }
-/* Bouton ajouter un match */
-.add-match-button {
+
+.nav-link {
   display: inline-block;
-  background-color: #27ae60;
-  color: white;
-  padding: 12px 28px;
-  border-radius: 8px;
-  text-decoration: none;
+  color: #2c3e50;
   font-weight: 700;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-  margin: 10px 0 30px;
-  align-self: center;
-  box-shadow: 0 4px 14px rgba(39,174,96,0.3);
-}
-.add-match-button:hover {
-  background-color: #219150;
-  transform: scale(1.05);
-  box-shadow: 0 6px 18px rgba(33,145,80,0.5);
-}
-
-/* Container connexion */
-.login-container {
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.login-link {
-  display: inline-block;
-  background-color: #27ae60;
-  color: white;
-  font-weight: 700;
-  font-size: 1.1rem;
-  padding: 12px 28px;
-  border-radius: 8px;
+  font-size: 1.4rem;
+  padding: 10px 16px;
+  border-radius: 6px;
   text-decoration: none;
-  cursor: pointer;
-  user-select: none;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
-.login-link:hover {
+
+.nav-link:hover {
   background-color: #219150;
   box-shadow: 0 4px 12px rgba(33,145,80,0.4);
 }
-.login-link:active {
-  background-color: #1b6f3f;
-}
 
-/* Texte avertissement */
-.warning-text {
-  margin-top: 12px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #e67e22;
-  user-select: none;
-  font-style: italic;
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-  .container {
-    padding: 0 15px 30px;
-    margin: 15px auto;
-  }
-  .logout-button,
-  .add-match-button,
-  .login-link {
-    width: 100%;
-    padding: 14px 0;
-    font-size: 1rem;
-  }
-  .home-link {
-  align-self: center; /* Centrer dans le flex parent */
-  margin-bottom: 25px;
-  display: inline-flex;
-  transition: transform 0.25s ease;
-}
-  .add-match-button {
-    display: block; /* Pour que le bouton prenne toute la largeur */
-    width: 100%;
-    padding: 16px 0; /* Plus de hauteur, pas de padding horizontal */
-    font-size: 1.3rem; /* Texte plus grand */
-    text-align: center;
-    margin: 20px auto; /* Centré verticalement */
-    border-radius: 12px; /* Coins plus arrondis sur mobile */
+@media (max-width: 600px) {
+  .header-container {
+    flex-direction: column;
+    align-items: center;
   }
 }
-
 </style>
