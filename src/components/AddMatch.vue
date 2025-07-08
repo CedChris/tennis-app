@@ -167,7 +167,7 @@ export default {
         joueur1: '',
         joueur2: '',
         terrain: '',
-        date: '',
+        date: this.getCurrentDateTimeLocal(),
         categorie: '' // Ajout de la catégorie
       },
       scoreSetsInputs: [
@@ -188,6 +188,19 @@ export default {
     await this.fetchPlayers()
   },
   methods: {
+     getCurrentDateTimeLocal() {
+  const now = new Date();
+  now.setSeconds(0, 0);
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+
+  // Format YYYY-MM-DDTHH:MM (heure locale)
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+},
     async fetchPlayers() {
       try {
         const res = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/joueurs')
