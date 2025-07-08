@@ -1,8 +1,17 @@
 <template>
+  <div v-if="isAuthenticated" class="date-filter">
+  <label for="date">Filtrer par date :</label>
+  <input
+    type="date"
+    id="date"
+    v-model="selectedDate"
+  />
+  <button @click="selectedDate = null">Réinitialiser</button>
+</div>
   <div class="match-list-container">
     <h2>Liste des matchs</h2>
     <ul>
-      <li v-for="match in matches" :key="match.id" class="match-card">
+      <li v-for="match in filteredMatches" :key="match.id" class="match-card">
         <template v-if="match.joueur1 && match.joueur2">
           <div class="players">
             <strong class="joueur1">
@@ -25,18 +34,21 @@
             <template v-if="match.scoreSets && match.scoreSets.length">
               <span v-for="(set, index) in match.scoreSets" :key="index" class="set-score">
   <div class="score-controls">
-    
+    <!-- Toujours visible -->
+    <span class="score-joueur1">{{ set.joueur1 }}</span>
+    <!-- Boutons visibles uniquement si connecté -->
     <div v-if="isAuthenticated" class="score-buttons">
       <button @click="updateScore(match, index, 'joueur1', 1)">+</button>
-      <span class="score-joueur1">{{ set.joueur1 }}</span>
       <button @click="updateScore(match, index, 'joueur1', -1)">–</button>
     </div>
   </div>
+
   <div class="score-controls">
-    
+    <!-- Toujours visible -->
+    <span class="score-joueur2">{{ set.joueur2 }}</span>
+    <!-- Boutons visibles uniquement si connecté -->
     <div v-if="isAuthenticated" class="score-buttons">
       <button @click="updateScore(match, index, 'joueur2', 1)">+</button>
-      <span class="score-joueur2">{{ set.joueur2 }}</span>
       <button @click="updateScore(match, index, 'joueur2', -1)">–</button>
     </div>
   </div>
@@ -65,77 +77,6 @@
       </li>
     </ul>
   </div>
-  <!-- TEMPLATE HORIZONTAL D’AFFICHAGE DES RÉSULTATS -->
-<div class="match-list-horizontal" v-if="affichageAlternatif">
-  <table class="match-table">
-  <thead>
-    <tr>
-      <th>Joueurs</th>
-      <th>Terrain</th>
-      <th>Heure</th>
-      <th>Catégorie</th>
-      <th v-if="isAuthenticated">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-for="match in matches" :key="match.id">
-      <td class="players-cell">
-        <span class="joueur1">
-          {{ getNomJoueur(match, 'joueur1') }}
-          <span v-if="getClassement(match, 'joueur1')">
-            ({{ getClassement(match, 'joueur1') }})
-          </span>
-        </span>
-        <span>vs</span>
-        <span class="joueur2">
-          {{ getNomJoueur(match, 'joueur2') }}
-          <span v-if="getClassement(match, 'joueur2')">
-            ({{ getClassement(match, 'joueur2') }})
-          </span>
-        </span>
-      </td>
-      
-      <td class="score-cell">
-        <template v-if="match.scoreSets && match.scoreSets.length">
-          <span
-            v-for="(set, index) in match.scoreSets"
-            :key="index"
-            class="set-score-horizontal"
-          >
-            <div class="score-joueur1" v-if="isAuthenticated">
-              <button @click="updateScore(match, index, 'joueur1', 1)">+</button>
-              {{ set.joueur1 }}
-              <button @click="updateScore(match, index, 'joueur1', -1)">–</button>
-            </div>
-            <span>:</span>
-            <div class="score-joueur2" v-if="isAuthenticated">
-              <button @click="updateScore(match, index, 'joueur2', 1)">+</button>
-              {{ set.joueur2 }}
-              <button @click="updateScore(match, index, 'joueur2', -1)">–</button>
-            </div>
-          </span>
-        </template>
-        <template v-else>
-          {{ match.score || 'Pas encore joué' }}
-        </template>
-      </td>
-
-      <td>{{ match.terrain }}</td>
-      <td>{{ formatTime(match.date) }}</td>
-      <td>{{ match.categorie }}</td>
-
-      <td v-if="isAuthenticated" class="crud-buttons-horizontal">
-        <router-link :to="{ name: 'EditMatch', params: { documentId: match.documentId } }" class="edit-button">✏️</router-link>
-        <button @click="deleteMatch(match.documentId)" class="delete-button">🗑️</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</div>
-<label>
-  <input type="checkbox" v-model="affichageAlternatif" />
-  Mode d'affichage alternatif
-</label>
 </template>
 
 <script>
@@ -146,10 +87,32 @@ export default {
   data() {
     return {
       matches: [],
-      affichageAlternatif: false
+      selectedDate: new Date().toISOString().split("T")[0],
+    }
+  },
+  computed: {
+    filteredMatches() {
+      if (this.selectedDate) {
+        const selected = new Date(this.selectedDate).toISOString().split("T")[0];
+        return this.matches.filter(match => {
+          const matchDate = new Date(match.date).toISOString().split("T")[0];
+          return matchDate === selected;
+        });
+      }
+      return this.matches;
     }
   },
   methods: {
+    async loadMatches() {
+      try {
+        const res = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches?populate[joueur1]=true&populate[joueur2]=true')
+        this.matches = res.data.data
+          .filter(match => match.joueur1 && match.joueur2)
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+      } catch (error) {
+        console.error('Erreur lors de la récupération des matchs', error)
+      }
+    },
   async updateScore(match, setIndex, joueurKey, increment) {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -178,6 +141,7 @@ export default {
       );
       // Mise à jour locale du score
       match.scoreSets = newScoreSets;
+      await this.loadMatches()
     } catch (error) {
       console.error('Erreur lors de la mise à jour du score', error.response);
       alert('Erreur lors de la mise à jour : ' + (error.response?.data?.error?.message || 'Erreur inconnue'));
@@ -190,8 +154,11 @@ export default {
       return match?.[joueurKey]?.classement || null
     },
     formatTime(dateStr) {
-      return new Date(dateStr).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-    },
+  const date = new Date(dateStr);
+  const hours = date.getUTCHours().toString().padStart(2, '0');
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+},
     async deleteMatch(documentId) {
   if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
     const token = localStorage.getItem('token')
@@ -205,6 +172,7 @@ export default {
       })
       // Mise à jour locale, on supprime par id (unique dans la liste)
       this.matches = this.matches.filter(match => match.documentId !== documentId)
+      await this.loadMatches()
       alert('Match supprimé avec succès.')
     } catch (error) {
       console.error('Erreur lors de la suppression du match', error.response)
@@ -219,10 +187,12 @@ export default {
       this.matches = matchesRes.data.data
       .filter(match => match.joueur1 && match.joueur2)
       .sort((a, b) => new Date(a.date) - new Date(b.date))
+      await this.loadMatches()
     } catch (error) {
       console.error('Erreur lors de la récupération des matchs', error)
     }
   }
+  
 }
 </script>
 
@@ -368,13 +338,14 @@ ul {
   margin-left: 6px;
 }
 .score-buttons button {
-  background: #d1ecf1;
+  background: #e8f5e9;
   border: none;
   border-radius: 4px;
   padding: 2px 6px;
-  font-weight: bold;
+  font-weight: 900;
   cursor: pointer;
   transition: background 0.2s;
+  color: black;
 }
 .score-buttons button:hover {
   background: #bee5eb;
