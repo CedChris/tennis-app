@@ -7,7 +7,7 @@
 
   <nav class="nav-links">
     <template v-if="isAuthenticated">
-      <router-link to="/add-match" class="nav-link">Gestion des matches/joueurs</router-link>
+      <router-link to="/add-match" class="nav-link">Matches/Joueurs</router-link>
       <a href="#" class="nav-link" @click.prevent="logout">Se déconnecter</a>
     </template>
 
