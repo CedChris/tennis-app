@@ -234,8 +234,9 @@ ul {
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Min 280px pour éviter débordement */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Max 4 par ligne si l’espace le permet */
   gap: 20px;
+  justify-items: center;
 }
 
 /* CARTE MATCH */
@@ -249,13 +250,15 @@ ul {
   padding: 20px 24px;
   border: 2px solid #ccc;
   width: 100%;
+  max-width: 320px;               /* Taille max par carte */
+  min-height: 400px;              /* Hauteur uniforme */
   box-sizing: border-box;
   transition: transform 0.3s ease;
 }
 
 .match-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* JOUEURS */
@@ -283,10 +286,15 @@ ul {
 
 .joueur1 {
   color: #f1c40f;
+  text-shadow:
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000;
 }
 
 .joueur2 {
-  color: #2980b9;
+   color: #2980b9;
 }
 .vs {
   color: #555;
@@ -414,6 +422,11 @@ ul {
 .crud-buttons .edit-button:hover {
   background: #bee5eb;
 }
+.date-filter{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 /* CLASSEMENT */
 .classement {
   font-size: 1rem;
@@ -424,6 +437,7 @@ ul {
   border-radius: 4px;
   background-color: #f1c40f; /* Fond léger, discret */
   display: inline-block;
+  text-shadow: none;
 }
 .match-list-horizontal {
   max-width: 100%;
