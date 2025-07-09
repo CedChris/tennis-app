@@ -130,5 +130,10 @@ goToManage() {
     flex-direction: column;
     align-items: center;
   }
+  .nav-links{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 }
 </style>
