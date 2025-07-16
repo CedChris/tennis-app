@@ -19,7 +19,17 @@
         <button type="submit" class="submit-button">Ajouter le joueur</button>
       </form>
     </div>
-
+<div class="add-players-section">
+  <h2 class="add-players-title">Ajouter plusieurs joueurs</h2>
+  <textarea
+    v-model="bulkPlayersInput"
+    class="add-players-textarea"
+    placeholder="Ex: Roger Federer - 10"
+  ></textarea>
+  <button class="add-players-button" @click="addPlayersInBulk">
+    Ajouter les joueurs
+  </button>
+</div>
     <!-- Liste des joueurs -->
     <div class="player-list" @click.outside="dropdownOpen = false">
       <h3>Liste des joueurs</h3>
@@ -193,7 +203,7 @@ export default {
       },
       popup: {
   visible: false,
-  message: ''
+  message: '',
 },
       match: {
         joueur1: '',
@@ -202,6 +212,7 @@ export default {
         date: this.getCurrentDateTimeLocal(),
         categorie: '' // Ajout de la catégorie
       },
+      bulkPlayersInput: '',
       scoreSetsInputs: [
         { joueur1: 0, joueur2: 0 },
         { joueur1: 0, joueur2: 0 }
@@ -232,6 +243,52 @@ export default {
 
   // Format YYYY-MM-DDTHH:MM (heure locale)
   return `${year}-${month}-${day}T${hours}:${minutes}`;
+},async addMultiplePlayers() {
+  if (!this.bulkPlayersInput.trim()) {
+    this.showPopup('Le champ est vide.');
+    return;
+  }
+
+  // Parse input : un joueur par ligne, format "Nom;Classement"
+  const lines = this.bulkPlayersInput.trim().split('\n');
+  const playersToAdd = [];
+
+  for (let line of lines) {
+    const parts = line.split(';');
+    if (parts.length !== 2) {
+      this.showPopup(`Format incorrect dans la ligne : "${line}". Utilisez "Nom;Classement".`);
+      return;
+    }
+    const nom = parts[0].trim();
+    const classement = parts[1].trim();
+
+    if (!nom || !classement) {
+      this.showPopup(`Nom ou classement manquant dans la ligne : "${line}".`);
+      return;
+    }
+
+    playersToAdd.push({ nom, classement });
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    
+    // Boucle d’envoi séquentiel (si Strapi n’a pas d’endpoint batch)
+    for (const player of playersToAdd) {
+      const payload = { data: player };
+      await axios.post('https://ancient-purpose-79e6e65b06.strapiapp.com/api/joueurs', payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    }
+
+    this.showPopup(`${playersToAdd.length} joueurs ajoutés avec succès !`);
+    this.bulkPlayersInput = '';
+    await this.fetchPlayers();
+
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout multiple des joueurs', error);
+    this.showPopup('Erreur lors de l\'ajout des joueurs.');
+  }
 },
     async fetchPlayers() {
       try {
@@ -427,125 +484,155 @@ async removeByDocumentId(docId) {
 </script>
 
 
-<style>
+<style scoped>
 .add-match-container {
-  max-width: 700px;
-  margin: 40px auto;
-  padding: 30px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+  color: #333;
   background-color: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-.home-link {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 25px;
-  transition: transform 0.25s ease;
-}
-
-.home-link:hover {
-  transform: scale(1.1);
-}
-.add-player-container {
-  margin-bottom: 30px;
-  padding: 20px;
   border-radius: 8px;
 }
 
-.add-player-container h3 {
-  margin-bottom: 15px;
-  font-size: 1.5rem;
-  color: #16a085;
+.home-link {
+  display: inline-block;
+  margin-bottom: 2rem;
 }
 
-.add-match-container h2 {
-  text-align: center;
-  margin-bottom: 25px;
-  font-size: 2rem;
+h2,
+h3 {
+  margin-bottom: 1rem;
   color: #2c3e50;
+}
+
+form {
+  margin-bottom: 2rem;
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
 }
 
-label {
+.form-group label {
   display: block;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #34495e;
+  margin-bottom: 0.3rem;
+  font-weight: bold;
 }
 
-input, select {
+input[type="text"],
+input[type="number"],
+input[type="datetime-local"],
+select,
+textarea {
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #dcdcdc;
-  outline: none;
-  font-size: 1rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
-input:focus, select:focus {
-  border-color: #27ae60;
-  box-shadow: 0 0 5px rgba(39, 174, 96, 0.5);
-}
-
-.set-input {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.set-input h4 {
-  grid-column: span 2;
-  margin: 10px 0 5px 0;
-  color: #2c3e50;
+textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
 button {
-  background-color: #27ae60;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
-button:hover {
-  background-color: #219150;
-  transform: scale(1.05);
+.submit-button {
+  background-color: #3498db;
+  color: white;
 }
 
-button[type="button"] {
+.submit-button:hover {
   background-color: #2980b9;
-  margin-top: 10px;
 }
 
-button[type="button"]:hover {
-  background-color: #2471a3;
+.delete-button {
+  background-color: #e74c3c;
+  color: white;
+  margin-top: 1rem;
 }
+
+.delete-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.add-set-button {
+  background-color: #2ecc71;
+  color: white;
+  margin-top: 1rem;
+}
+
+.delete-set-button {
+  background-color: #e67e22;
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.add-players-section {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.add-players-title {
+  margin-bottom: 1rem;
+}
+
+.add-players-textarea {
+  width: 100%;
+  padding: 0.6rem;
+  font-family: inherit;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.add-players-button {
+  margin-top: 0.8rem;
+  background-color: #16a085;
+  color: white;
+}
+
+.player-list {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
 .search-bar {
-  padding: 5px;
-  width: 200px;
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .dropdown {
-  border: 1px solid #ccc;
-  max-height: 200px;
-  overflow-y: auto;
-  width: 220px;
-  background-color: white;
   position: absolute;
-  z-index: 100;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background-color: white;
+  border: 1px solid #ccc;
+  max-height: 150px;
+  overflow-y: auto;
+  border-radius: 4px;
 }
 
 .dropdown-item {
-  padding: 5px;
+  padding: 0.5rem;
   cursor: pointer;
 }
 
@@ -553,43 +640,56 @@ button[type="button"]:hover {
   background-color: #f0f0f0;
 }
 
-.delete-button {
-  margin-top: 10px;
-  padding: 5px 10px;
+.set-input {
+  margin-bottom: 1.2rem;
+  padding: 1rem;
+  background-color: #eef2f3;
+  border-radius: 6px;
 }
-  .popup-overlay {
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
+}
+
+.input-group label {
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+}
+
+.score-info {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 999;
 }
 
 .popup {
-  background: white;
-  padding: 20px 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.25);
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 400px;
   text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .popup button {
-  margin-top: 15px;
-  padding: 8px 16px;
   background-color: #3498db;
   color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.popup button:hover {
-  background-color: #2980b9;
+  margin-top: 1rem;
 }
 @media (max-width: 600px) {
   .set-input {
