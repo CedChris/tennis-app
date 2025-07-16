@@ -87,7 +87,7 @@ export default {
   data() {
     return {
       matches: [],
-      selectedDate: new Date().toISOString().split("T")[0],
+      selectedDate: null,
     }
   },
   computed: {

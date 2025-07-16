@@ -54,6 +54,5 @@ export default {
 <style scoped>
 svg {
   display: block;
-  margin: 0 auto 20px auto;
 }
 </style>

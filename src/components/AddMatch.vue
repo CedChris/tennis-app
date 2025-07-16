@@ -1,6 +1,7 @@
 <template>
   <div class="add-match-container">
     <router-link to="/" class="home-link"><Logo /></router-link>
+
     <!-- Formulaire pour ajouter un joueur -->
     <div class="add-player-container">
       <h2>Ajouter un joueur</h2>
@@ -18,41 +19,44 @@
         <button type="submit" class="submit-button">Ajouter le joueur</button>
       </form>
     </div>
-<div class="player-list" @click.outside="dropdownOpen = false">
-    <h3>Liste des joueurs</h3>
 
-    <!-- Barre de recherche -->
-    <input
-      type="text"
-      v-model="searchQuery"
-      @input="handleInput"
-      placeholder="Rechercher un joueur..."
-      class="search-bar"
-    />
+    <!-- Liste des joueurs -->
+    <div class="player-list" @click.outside="dropdownOpen = false">
+      <h3>Liste des joueurs</h3>
 
-    <!-- Dropdown personnalisé -->
-    <div class="dropdown" v-if="dropdownOpen && filteredPlayers.length">
-      <ul>
-        <li 
-          v-for="joueur in filteredPlayers" 
-          :key="joueur.id" 
-          @click="selectPlayer(joueur)"
-          class="dropdown-item"
-        >
-          {{ joueur.nom }} ({{ joueur.classement }})
-        </li>
-      </ul>
+      <!-- Barre de recherche -->
+      <input
+        type="text"
+        v-model="searchQuery"
+        @input="handleInput"
+        placeholder="Rechercher un joueur..."
+        class="search-bar"
+      />
+
+      <!-- Dropdown personnalisé -->
+      <div class="dropdown" v-if="dropdownOpen && filteredPlayers.length">
+        <ul>
+          <li 
+            v-for="joueur in filteredPlayers" 
+            :key="joueur.id" 
+            @click="selectPlayer(joueur)"
+            class="dropdown-item"
+          >
+            {{ joueur.nom }} ({{ joueur.classement }})
+          </li>
+        </ul>
+      </div>
+
+      <!-- Bouton suppression -->
+      <button 
+        @click="removeSelectedPlayer" 
+        :disabled="!selectedPlayer" 
+        class="delete-button"
+      >
+        Supprimer le joueur sélectionné
+      </button>
     </div>
 
-    <!-- Bouton suppression -->
-    <button 
-      @click="removeSelectedPlayer" 
-      :disabled="!selectedPlayer" 
-      class="delete-button"
-    >
-      Supprimer le joueur sélectionné
-    </button>
-  </div>
     <!-- Formulaire pour ajouter un match -->
     <h2>Ajouter un match</h2>
     <form @submit.prevent="addMatch">
@@ -60,7 +64,11 @@
         <label for="joueur1">Joueur 1 :</label>
         <select v-model="match.joueur1DocumentId" required>
           <option disabled value="">Sélectionnez le joueur 1</option>
-          <option v-for="joueur in joueurs" :key="joueur.id" :value="joueur.documentId">
+          <option 
+            v-for="joueur in joueurs" 
+            :key="joueur.id" 
+            :value="joueur.documentId"
+          >
             {{ joueur.nom }} ({{ joueur.classement }})
           </option>
         </select>
@@ -70,7 +78,11 @@
         <label for="joueur2">Joueur 2 :</label>
         <select v-model="match.joueur2DocumentId" required>
           <option disabled value="">Sélectionnez le joueur 2</option>
-          <option v-for="joueur in joueurs" :key="joueur.id" :value="joueur.documentId">
+          <option 
+            v-for="joueur in joueurs" 
+            :key="joueur.id" 
+            :value="joueur.documentId"
+          >
             {{ joueur.nom }} ({{ joueur.classement }})
           </option>
         </select>
@@ -86,7 +98,6 @@
         <input type="datetime-local" v-model="match.date" required />
       </div>
 
-      <!-- Champ catégorie -->
       <div class="form-group">
         <label for="categorie">Catégorie :</label>
         <select v-model="match.categorie" required>
@@ -100,47 +111,68 @@
         </select>
       </div>
 
-  <div class="form-group">
-  <label>Score Sets :</label>
-  <div class="score-info">
-    Entrez un score numérique ou "WO" en cas de forfait.
-  </div>
-  <div v-for="(set, index) in scoreSetsInputs" :key="index" class="set-input">
-    <h4>Set {{ index + 1 }}</h4>
-    <div class="input-group">
-      <label :for="'joueur1-set-' + index">Score Joueur 1 :</label>
-      <input
-        :id="'joueur1-set-' + index"
-        type="text"
-        v-model="set.joueur1"
-        required
-      />
-    </div>
-    <div class="input-group">
-      <label :for="'joueur2-set-' + index">Score Joueur 2 :</label>
-      <input
-        :id="'joueur2-set-' + index"
-        type="text"
-        v-model="set.joueur2"
-        required
-      />
-    </div>
-  </div>
-  <button type="button" @click="ajouterSet">Ajouter un Set</button>
-  <button type="button" @click="supprimerSet(index)">Supprimer ce set</button>
-</div>
+      <!-- Champ score par set -->
+      <div class="form-group">
+        <label>Score Sets :</label>
+        <div class="score-info">
+          Entrez un score numérique ou "WO" en cas de forfait.
+        </div>
+
+        <div 
+          v-for="(set, index) in scoreSetsInputs" 
+          :key="index" 
+          class="set-input"
+        >
+          <h4>Set {{ index + 1 }}</h4>
+          <div class="input-group">
+            <label :for="'joueur1-set-' + index">Score Joueur 1 :</label>
+            <input
+              :id="'joueur1-set-' + index"
+              type="text"
+              v-model="set.joueur1"
+              required
+            />
+          </div>
+          <div class="input-group">
+            <label :for="'joueur2-set-' + index">Score Joueur 2 :</label>
+            <input
+              :id="'joueur2-set-' + index"
+              type="text"
+              v-model="set.joueur2"
+              required
+            />
+          </div>
+
+          <button 
+            type="button" 
+            class="delete-set-button" 
+            @click="supprimerSet(index)"
+          >
+            Supprimer ce set
+          </button>
+        </div>
+
+        <button 
+          type="button" 
+          class="add-set-button" 
+          @click="ajouterSet"
+        >
+          Ajouter un Set
+        </button>
+      </div>
 
       <button type="submit" class="submit-button">Ajouter le match</button>
     </form>
-  </div>
-  <div v-if="popup.visible" class="popup-overlay">
-  <div class="popup">
-    <p>{{ popup.message }}</p>
-    <button @click="popup.visible = false">Fermer</button>
-  </div>
-</div>
-</template>
 
+    <!-- Popup message -->
+    <div v-if="popup.visible" class="popup-overlay">
+      <div class="popup">
+        <p>{{ popup.message }}</p>
+        <button @click="popup.visible = false">Fermer</button>
+      </div>
+    </div>
+  </div>
+</template>
 <script>
 import axios from 'axios'
 import Logo from './Logo.vue'
