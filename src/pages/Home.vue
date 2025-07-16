@@ -6,31 +6,34 @@
   </router-link>
 
   <nav class="nav-links">
+    <div>
+      <router-link to="/inscription" class="nav-link">Inscription Tennis</router-link>
+    </div>
     <template v-if="isAuthenticated">
-      <router-link to="/add-match" class="nav-link">Matches/Joueurs</router-link>
+      <router-link to="/add-match" class="nav-link">Administrateur</router-link>
       <a href="#" class="nav-link" @click.prevent="logout">Se déconnecter</a>
     </template>
 
     <template v-else>
       <router-link to="/login" class="nav-link">Se connecter</router-link>
     </template>
+    
   </nav>
 </div>
-<Blog/>
     <MatchList :isAuthenticated="isAuthenticated" />
   </div>
 </template>
 <script>
 import MatchList from '../components/MatchList.vue'
 import Logo from '../components/Logo.vue'
-import Blog from '../components/Blog.vue'
+import Inscription from '../components/Inscription.vue'
 
 export default {
   name: 'Home',
   components: {
     MatchList,
     Logo,
-    Blog
+    Inscription
   },
   data() {
     return {
@@ -71,37 +74,36 @@ goToManage() {
 </script>
 <style>
 .container {
-  width: 90vw;
-  max-width: 1400px;
-  margin: 30px auto;
-  padding: 20px 30px 40px;
+  width: 100vw; /* largeur entière de la fenêtre */
+  max-width: none; /* enlever max-width */
+  margin: 0; /* enlever la marge auto */
+  padding: 20px 30px 40px; /* garder le padding si besoin */
+  min-height: 100vh; /* au moins toute la hauteur de la fenêtre */
   background-color: #fafafa;
   box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-  border-radius: 12px;
+  border-radius: 0; /* ou garder à 12px si tu veux */
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 80vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   box-sizing: border-box;
 }
-
 .header-container {
+  width: 90%;
   display: flex;
-  flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 30px;
-  background-color: #f9f9f9;
+  margin-bottom: 30px;
+  color: white;
+  padding: 20px 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* ombre légère */
+  font-family: 'Roboto', sans-serif;
 }
 
 .home-link {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #ddd;
-  margin-bottom: 20px;
 }
 
 .nav-links {
@@ -125,7 +127,7 @@ goToManage() {
   box-shadow: 0 4px 12px rgba(33,145,80,0.4);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 950px) {
   .header-container {
     flex-direction: column;
     align-items: center;
