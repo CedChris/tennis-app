@@ -4,6 +4,7 @@ import Results from '../views/Results.vue'
 import Login from '../pages/LoginPage.vue'
 import AddMatch from '../components/AddMatch.vue'
 import EditMatch from '../components/EditMatch.vue'
+import Inscription from '../components/Inscription.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -12,7 +13,8 @@ const router = createRouter({
     { path: '/results', component: Results },
     { path: '/login', name: 'Login', component: Login },
     { path: '/add-match', component: AddMatch, meta: { requiresAuth: true } }, // 👉 route protégée
-    { path: '/edit-match/:documentId', name: 'EditMatch', component: EditMatch, props: true, meta: { requiresAuth: true } } // 👉 route protégée
+    { path: '/edit-match/:documentId', name: 'EditMatch', component: EditMatch, props: true, meta: { requiresAuth: true } },
+    { path: '/inscription', name: 'Inscription', component: Inscription },
   ]
 })
 
