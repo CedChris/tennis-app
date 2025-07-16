@@ -1,13 +1,14 @@
 <template>
   <div class="date-filter">
-  <label for="date">Filtrer par date :</label>
-  <input
-    type="date"
-    id="date"
-    v-model="selectedDate"
-  />
-  <button @click="selectedDate = null">Réinitialiser</button>
-</div>
+    <label for="date">Filtrer par date :</label>
+    <input
+      type="date"
+      id="date"
+      v-model="selectedDate"
+    />
+    <button @click="selectedDate = null">Réinitialiser</button>
+  </div>
+
   <div class="match-list-container">
     <h2>Liste des matchs</h2>
     <ul>
@@ -20,8 +21,9 @@
                 ({{ getClassement(match, 'joueur1') }})
               </span>
             </strong>
-            
+
             <span class="vs">vs</span>
+
             <strong class="joueur2">
               {{ getNomJoueur(match, 'joueur2') }}
               <span v-if="getClassement(match, 'joueur2')" class="classement">
@@ -33,26 +35,21 @@
           <div class="score">
             <template v-if="match.scoreSets && match.scoreSets.length">
               <span v-for="(set, index) in match.scoreSets" :key="index" class="set-score">
-  <div class="score-controls">
-    <!-- Toujours visible -->
-    <span class="score-joueur1">{{ set.joueur1 }}</span>
-    <!-- Boutons visibles uniquement si connecté -->
-    <div v-if="isAuthenticated" class="score-buttons">
-      <button @click="updateScore(match, index, 'joueur1', 1)">+</button>
-      <button @click="updateScore(match, index, 'joueur1', -1)">–</button>
-    </div>
-  </div>
-
-  <div class="score-controls">
-    <!-- Toujours visible -->
-    <span class="score-joueur2">{{ set.joueur2 }}</span>
-    <!-- Boutons visibles uniquement si connecté -->
-    <div v-if="isAuthenticated" class="score-buttons">
-      <button @click="updateScore(match, index, 'joueur2', 1)">+</button>
-      <button @click="updateScore(match, index, 'joueur2', -1)">–</button>
-    </div>
-  </div>
-</span>
+                <div class="score-controls">
+                  <span class="score-joueur1">{{ set.joueur1 }}</span>
+                  <div v-if="isAuthenticated" class="score-buttons">
+                    <button @click="updateScore(match, index, 'joueur1', 1)">+</button>
+                    <button @click="updateScore(match, index, 'joueur1', -1)">–</button>
+                  </div>
+                </div>
+                <div class="score-controls">
+                  <span class="score-joueur2">{{ set.joueur2 }}</span>
+                  <div v-if="isAuthenticated" class="score-buttons">
+                    <button @click="updateScore(match, index, 'joueur2', 1)">+</button>
+                    <button @click="updateScore(match, index, 'joueur2', -1)">–</button>
+                  </div>
+                </div>
+              </span>
             </template>
             <template v-else>
               {{ match.score || 'Pas encore joué' }}
@@ -62,15 +59,14 @@
           <div class="match-info">
             <div class="terrain">Terrain : {{ match.terrain }}</div>
             <div class="time">Heure : {{ formatTime(match.date) }}</div>
-            <div class="categorie">Catégorie : {{ match.categorie }}</div> <!-- Ajout ici -->
+            <div class="categorie">Catégorie : {{ match.categorie }}</div>
           </div>
 
           <div v-if="isAuthenticated" class="crud-buttons">
-            <router-link class="edit-button":to="{ name: 'EditMatch', params: { documentId: match.documentId } }">✏️</router-link>
+            <router-link class="edit-button" :to="{ name: 'EditMatch', params: { documentId: match.documentId } }">✏️</router-link>
             <button @click="deleteMatch(match.documentId)" class="delete-button">🗑️</button>
           </div>
         </template>
-
         <template v-else>
           <em>Informations incomplètes</em>
         </template>
@@ -113,86 +109,82 @@ export default {
         console.error('Erreur lors de la récupération des matchs', error)
       }
     },
-  async updateScore(match, setIndex, joueurKey, increment) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('Vous devez être connecté pour modifier le score.');
-      return;
-    }
-    // Clone le tableau pour éviter mutation directe
-    const newScoreSets = JSON.parse(JSON.stringify(match.scoreSets));
-    const currentScore = newScoreSets[setIndex][joueurKey];
-    // On évite les scores négatifs
-    const updatedScore = Math.max(0, currentScore + increment);
-    newScoreSets[setIndex][joueurKey] = updatedScore;
 
-    try {
-      // Appel API pour mettre à jour
-      await axios.put(
-        `https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${match.documentId}`,
-        {
-          data: {
-            scoreSets: newScoreSets
+    async updateScore(match, setIndex, joueurKey, increment) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Vous devez être connecté pour modifier le score.');
+        return;
+      }
+      const newScoreSets = JSON.parse(JSON.stringify(match.scoreSets));
+      const currentScore = newScoreSets[setIndex][joueurKey];
+      const updatedScore = Math.max(0, currentScore + increment);
+      newScoreSets[setIndex][joueurKey] = updatedScore;
+
+      try {
+        await axios.put(
+          `https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${match.documentId}`,
+          {
+            data: {
+              scoreSets: newScoreSets
+            }
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` }
           }
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-      // Mise à jour locale du score
-      match.scoreSets = newScoreSets;
-      await this.loadMatches()
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du score', error.response);
-      alert('Erreur lors de la mise à jour : ' + (error.response?.data?.error?.message || 'Erreur inconnue'));
-    }
-  },
+        );
+        match.scoreSets = newScoreSets;
+        await this.loadMatches(); // recharge les données sans trier à nouveau
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du score', error.response);
+        alert('Erreur lors de la mise à jour : ' + (error.response?.data?.error?.message || 'Erreur inconnue'));
+      }
+    },
+
     getNomJoueur(match, joueurKey) {
-      return match?.[joueurKey]?.nom || 'Inconnu'
+      return match?.[joueurKey]?.nom || 'Inconnu';
     },
+
     getClassement(match, joueurKey) {
-      return match?.[joueurKey]?.classement || null
+      return match?.[joueurKey]?.classement || null;
     },
+
     formatTime(dateStr) {
-  const date = new Date(dateStr);
-  const hours = date.getUTCHours().toString().padStart(2, '0');
-  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-  return `${hours}:${minutes}`;
-},
+      const date = new Date(dateStr);
+      const hours = date.getUTCHours().toString().padStart(2, '0');
+      const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    },
+
     async deleteMatch(documentId) {
-  if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      alert('Vous devez être connecté pour supprimer un match.')
-      return
+      if (confirm('Voulez-vous vraiment supprimer ce match ?')) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('Vous devez être connecté pour supprimer un match.');
+          return;
+        }
+        try {
+          await axios.delete(`https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${documentId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          this.matches = this.matches.filter(match => match.documentId !== documentId);
+          alert('Match supprimé avec succès.');
+        } catch (error) {
+          console.error('Erreur lors de la suppression du match', error.response);
+          alert('Erreur lors de la suppression : ' + (error.response?.data?.error?.message || 'Erreur inconnue'));
+        }
+      }
     }
-    try {
-      await axios.delete(`https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${documentId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      // Mise à jour locale, on supprime par id (unique dans la liste)
-      this.matches = this.matches.filter(match => match.documentId !== documentId)
-      await this.loadMatches()
-      alert('Match supprimé avec succès.')
-    } catch (error) {
-      console.error('Erreur lors de la suppression du match', error.response)
-      alert('Erreur lors de la suppression : ' + (error.response?.data?.error?.message || 'Erreur inconnue'))
-    }
-  }
-}
   },
-  async mounted() {
-    try {
-      const matchesRes = await axios.get('https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches?populate[joueur1]=true&populate[joueur2]=true')
-      this.matches = matchesRes.data.data
-      .filter(match => match.joueur1 && match.joueur2)
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
-      await this.loadMatches()
-    } catch (error) {
-      console.error('Erreur lors de la récupération des matchs', error)
-    }
+  mounted() {
+    this.loadMatches();
+    this.pollingInterval = setInterval(() => {
+      this.loadMatches(); // recharge sans casser l'ordre initial
+    }, 5000);
+  },
+  beforeUnmount() {
+    clearInterval(this.pollingInterval);
   }
-  
 }
 </script>
 
@@ -340,20 +332,27 @@ ul {
   color: #fff;
   justify-content: center;
 }
+.score-controls{
+ display: flex;
+}
 .score-buttons {
   display: inline-flex;
+  flex-direction: column;
+  border-radius: 8px;
+  align-items: center;
   gap: 4px;
   margin-left: 6px;
+  background-color: #18abc5f1;
 }
 .score-buttons button {
-  background: #e8f5e9;
+  background: none;
   border: none;
   border-radius: 4px;
   padding: 2px 6px;
   font-weight: 900;
   cursor: pointer;
   transition: background 0.2s;
-  color: black;
+  color: white;
 }
 .score-buttons button:hover {
   background: #bee5eb;
@@ -422,10 +421,40 @@ ul {
 .crud-buttons .edit-button:hover {
   background: #bee5eb;
 }
-.date-filter{
+.date-filter {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
+}
+
+.date-filter label {
+  font-weight: 600;
+  color: #333;
+}
+
+.date-filter input[type="date"] {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.date-filter button {
+  padding: 0.5rem 1rem;
+  background-color: #e67e22;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.date-filter button:hover {
+  background-color: #cf711c;
 }
 /* CLASSEMENT */
 .classement {
