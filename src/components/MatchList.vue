@@ -1,13 +1,19 @@
 <template>
-  <div class="date-filter">
-    <label for="date">Filtrer par date :</label>
-    <input
-      type="date"
-      id="date"
-      v-model="selectedDate"
-    />
-    <button @click="selectedDate = null">Voir tous les matches</button>
-  </div>
+  <div class="date-filter"> 
+  <label for="date">Filtrer par date :
+    <span class="tooltip">❔
+      <span class="tooltiptext">Choisissez une date pour filtrer les matches</span>
+    </span>
+  </label>
+  <input
+    type="date"
+    id="date"
+    v-model="selectedDate"
+  />
+  <button @click="selectedDate = null">
+    Voir tous les matches
+  </button>
+</div>
 
   <div class="match-list-container">
     <h2>Liste des matchs</h2>
