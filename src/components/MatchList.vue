@@ -210,6 +210,34 @@ body {
   padding: 20px;
   overflow-x: hidden; /* Empêche le débordement horizontal */
 }
+  .tooltip {
+  position: relative;
+  cursor: help;
+  margin-left: 5px;
+}
+
+.tooltiptext {
+  visibility: hidden;
+  width: 200px;
+  background-color: #333;
+  color: #fff;
+  text-align: left;
+  border-radius: 6px;
+  padding: 6px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* au-dessus */
+  left: 50%;
+  margin-left: -100px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 12px;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
 /* CONTAINER PRINCIPAL */
 .match-list-container {
   width: 100%;              /* Pleine largeur */
