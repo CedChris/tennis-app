@@ -42,19 +42,30 @@
             <template v-if="match.scoreSets && match.scoreSets.length">
               <span v-for="(set, index) in match.scoreSets" :key="index" class="set-score">
                 <div class="score-controls">
-                  <span class="score-joueur1">{{ set.joueur1 }}</span>
-                  <div v-if="isAuthenticated" class="score-buttons">
-                    <button @click="updateScore(match, index, 'joueur1', 1)">+</button>
-                    <button @click="updateScore(match, index, 'joueur1', -1)">–</button>
-                  </div>
-                </div>
-                <div class="score-controls">
-                  <span class="score-joueur2">{{ set.joueur2 }}</span>
-                  <div v-if="isAuthenticated" class="score-buttons">
-                    <button @click="updateScore(match, index, 'joueur2', 1)">+</button>
-                    <button @click="updateScore(match, index, 'joueur2', -1)">–</button>
-                  </div>
-                </div>
+  <span
+    class="score-joueur1"
+    :class="{ winner: isWinner(set, 'joueur1') }"
+  >
+    {{ set.joueur1 }}
+  </span>
+  <div v-if="isAuthenticated" class="score-buttons">
+    <button @click="updateScore(match, index, 'joueur1', 1)">+</button>
+    <button @click="updateScore(match, index, 'joueur1', -1)">–</button>
+  </div>
+</div>
+
+<div class="score-controls">
+  <span
+    class="score-joueur2"
+    :class="{ winner: isWinner(set, 'joueur2') }"
+  >
+    {{ set.joueur2 }}
+  </span>
+  <div v-if="isAuthenticated" class="score-buttons">
+    <button @click="updateScore(match, index, 'joueur2', 1)">+</button>
+    <button @click="updateScore(match, index, 'joueur2', -1)">–</button>
+  </div>
+</div>
               </span>
             </template>
             <template v-else>
@@ -115,7 +126,13 @@ export default {
         console.error('Erreur lors de la récupération des matchs', error)
       }
     },
+    isWinner(set, joueurKey) {
+  const score = set[joueurKey];
+  const autre = joueurKey === 'joueur1' ? 'joueur2' : 'joueur1';
 
+  // Il faut atteindre au moins 6 ou 7 ET avoir plus que l'autre joueur
+  return (score >= 6 || score === 7) && score > set[autre];
+},
     async updateScore(match, setIndex, joueurKey, increment) {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -215,7 +232,12 @@ body {
   cursor: help;
   margin-left: 5px;
 }
-
+.winner {
+  border: 2px solid green;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: bold;
+}
 .tooltiptext {
   visibility: hidden;
   width: 200px;
