@@ -6,7 +6,7 @@
       id="date"
       v-model="selectedDate"
     />
-    <button @click="selectedDate = null">Réinitialiser</button>
+    <button @click="selectedDate = null">Voir tous les matches</button>
   </div>
 
   <div class="match-list-container">
