@@ -1,19 +1,20 @@
 <template>
   <div class="date-filter"> 
-  <label for="date">Filtrer par date :
-    <span class="tooltip">❔
-      <span class="tooltiptext">Choisissez une date pour filtrer les matches</span>
-    </span>
-  </label>
-  <input
-    type="date"
-    id="date"
-    v-model="selectedDate"
-  />
-  <button @click="selectedDate = null">
-    Voir tous les matches
-  </button>
-</div>
+    <label for="date">
+      Filtrer par date :
+      <span class="tooltip">❔
+        <span class="tooltiptext">Choisissez une date pour filtrer les matches</span>
+      </span>
+    </label>
+    <input
+      type="date"
+      id="date"
+      v-model="selectedDate"
+    />
+    <button @click="selectedDate = null">
+      Voir tous les matches
+    </button>
+  </div>
 
   <div class="match-list-container">
     <h2>Liste des matchs</h2>
@@ -21,7 +22,10 @@
       <li v-for="match in filteredMatches" :key="match.id" class="match-card">
         <template v-if="match.joueur1 && match.joueur2">
           <div class="players">
-            <strong class="joueur1">
+            <strong
+              class="joueur1"
+              :class="{ winner: getVainqueurSets(match) === 'joueur1' }"
+            >
               {{ getNomJoueur(match, 'joueur1') }}
               <span v-if="getClassement(match, 'joueur1')" class="classement">
                 ({{ getClassement(match, 'joueur1') }})
@@ -30,7 +34,10 @@
 
             <span class="vs">vs</span>
 
-            <strong class="joueur2">
+            <strong
+              class="joueur2"
+              :class="{ winner: getVainqueurSets(match) === 'joueur2' }"
+            >
               {{ getNomJoueur(match, 'joueur2') }}
               <span v-if="getClassement(match, 'joueur2')" class="classement">
                 ({{ getClassement(match, 'joueur2') }})
@@ -40,32 +47,30 @@
 
           <div class="score">
             <template v-if="match.scoreSets && match.scoreSets.length">
-              <span v-for="(set, index) in match.scoreSets" :key="index" class="set-score">
+              <span
+                v-for="(set, index) in match.scoreSets"
+                :key="index"
+                class="set-score"
+              >
                 <div class="score-controls">
-  <span
-    class="score-joueur1"
-    :class="{ winner: isWinner(set, 'joueur1') }"
-  >
-    {{ set.joueur1 }}
-  </span>
-  <div v-if="isAuthenticated" class="score-buttons">
-    <button @click="updateScore(match, index, 'joueur1', 1)">+</button>
-    <button @click="updateScore(match, index, 'joueur1', -1)">–</button>
-  </div>
-</div>
+                  <span class="score-joueur1">
+                    {{ set.joueur1 }}
+                  </span>
+                  <div v-if="isAuthenticated" class="score-buttons">
+                    <button @click="updateScore(match, index, 'joueur1', 1)">+</button>
+                    <button @click="updateScore(match, index, 'joueur1', -1)">–</button>
+                  </div>
+                </div>
 
-<div class="score-controls">
-  <span
-    class="score-joueur2"
-    :class="{ winner: isWinner(set, 'joueur2') }"
-  >
-    {{ set.joueur2 }}
-  </span>
-  <div v-if="isAuthenticated" class="score-buttons">
-    <button @click="updateScore(match, index, 'joueur2', 1)">+</button>
-    <button @click="updateScore(match, index, 'joueur2', -1)">–</button>
-  </div>
-</div>
+                <div class="score-controls">
+                  <span class="score-joueur2">
+                    {{ set.joueur2 }}
+                  </span>
+                  <div v-if="isAuthenticated" class="score-buttons">
+                    <button @click="updateScore(match, index, 'joueur2', 1)">+</button>
+                    <button @click="updateScore(match, index, 'joueur2', -1)">–</button>
+                  </div>
+                </div>
               </span>
             </template>
             <template v-else>
@@ -80,10 +85,18 @@
           </div>
 
           <div v-if="isAuthenticated" class="crud-buttons">
-            <router-link class="edit-button" :to="{ name: 'EditMatch', params: { documentId: match.documentId } }">✏️</router-link>
-            <button @click="deleteMatch(match.documentId)" class="delete-button">🗑️</button>
+            <router-link
+              class="edit-button"
+              :to="{ name: 'EditMatch', params: { documentId: match.documentId } }"
+            >
+              ✏️
+            </router-link>
+            <button @click="deleteMatch(match.documentId)" class="delete-button">
+              🗑️
+            </button>
           </div>
         </template>
+
         <template v-else>
           <em>Informations incomplètes</em>
         </template>
@@ -91,7 +104,6 @@
     </ul>
   </div>
 </template>
-
 <script>
 import axios from 'axios'
 
@@ -100,7 +112,7 @@ export default {
   data() {
     return {
       matches: [],
-      selectedDate: new Date().toISOString().split('T')[0],
+      selectedDate: null,
     }
   },
   computed: {
@@ -126,14 +138,7 @@ export default {
         console.error('Erreur lors de la récupération des matchs', error)
       }
     },
-    isWinner(set, joueurKey) {
-  const score = set[joueurKey];
-  const autre = joueurKey === 'joueur1' ? 'joueur2' : 'joueur1';
-
-  // Il faut atteindre au moins 6 ou 7 ET avoir plus que l'autre joueur
-  return (score >= 6 || score === 7) && score > set[autre];
-},
-    getVainqueurSets(match) {
+getVainqueurSets(match) {
   let joueur1Sets = 0;
   let joueur2Sets = 0;
 
@@ -245,16 +250,18 @@ body {
   padding: 20px;
   overflow-x: hidden; /* Empêche le débordement horizontal */
 }
-  .tooltip {
+/* CONTAINER PRINCIPAL */
+.match-list-container {
+  width: 100%;              /* Pleine largeur */
+  max-width: 1400px;        /* Largeur max */
+  margin: 0 auto;           /* Centré horizontalement */
+  padding: 20px 10px;
+  box-sizing: border-box;
+}
+.tooltip {
   position: relative;
   cursor: help;
   margin-left: 5px;
-}
-.winner {
-  border: 2px solid green;
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-weight: bold;
 }
 .tooltiptext {
   visibility: hidden;
@@ -278,15 +285,12 @@ body {
   visibility: visible;
   opacity: 1;
 }
-/* CONTAINER PRINCIPAL */
-.match-list-container {
-  width: 100%;              /* Pleine largeur */
-  max-width: 1400px;        /* Largeur max */
-  margin: 0 auto;           /* Centré horizontalement */
-  padding: 20px 10px;
-  box-sizing: border-box;
+.winner {
+  border: 2px solid green;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: bold;
 }
-
 /* TITRE */
 h2 {
   text-align: center;
