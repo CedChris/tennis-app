@@ -133,6 +133,24 @@ export default {
   // Il faut atteindre au moins 6 ou 7 ET avoir plus que l'autre joueur
   return (score >= 6 || score === 7) && score > set[autre];
 },
+    getVainqueurSets(match) {
+  let joueur1Sets = 0;
+  let joueur2Sets = 0;
+
+  if (!match.scoreSets) return null;
+
+  match.scoreSets.forEach(set => {
+    if ((set.joueur1 >= 6 || set.joueur1 === 7) && set.joueur1 > set.joueur2) {
+      joueur1Sets++;
+    } else if ((set.joueur2 >= 6 || set.joueur2 === 7) && set.joueur2 > set.joueur1) {
+      joueur2Sets++;
+    }
+  });
+
+  if (joueur1Sets >= 2 && joueur1Sets > joueur2Sets) return 'joueur1';
+  if (joueur2Sets >= 2 && joueur2Sets > joueur1Sets) return 'joueur2';
+  return null; // Pas encore gagné ou égalité
+},
     async updateScore(match, setIndex, joueurKey, increment) {
       const token = localStorage.getItem('token');
       if (!token) {
