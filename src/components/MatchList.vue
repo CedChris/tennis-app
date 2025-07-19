@@ -84,22 +84,13 @@
             <div class="categorie">Catégorie : {{ match.categorie }}</div>
           </div>
 
-          <div v-if="isAuthenticated" class="crud-buttons">
-  <router-link
-    class="edit-button"
-    :to="{ name: 'EditMatch', params: { documentId: match.documentId } }"
-  >
-    ✏️
-  </router-link>
-  <button @click="deleteMatch(match.documentId)" class="delete-button">
-    🗑️
-  </button>
-
-  <!-- Nouveaux boutons -->
-  <button @click="ajouterSet(match)" class="set-button">➕ Set</button>
-  <button @click="supprimerDernierSet(match)" class="set-button">➖ Set</button>
-  <button @click="mettreWO(match, 'joueur1')" class="wo-button">🚫 WO joueur 1</button>
-  <button @click="mettreWO(match, 'joueur2')" class="wo-button">🚫 WO joueur 2</button>
+          <div class="crud-buttons" v-if="isAuthenticated">
+          <router-link class="edit-button" :to="{ name: 'EditMatch', params: { documentId: match.documentId } }">✏️</router-link>
+    <button @click="deleteMatch(match.documentId)" class="delete-button">🗑️</button>
+    <button @click="ajouterSet(match)" class="add-set-button">➕ Set</button>
+    <button @click="supprimerDernierSet(match)" class="remove-set-button">➖ Set</button>
+    <button @click="mettreWO(match, 'joueur1')" class="wo-button">WO J1</button>
+    <button @click="mettreWO(match, 'joueur2')" class="wo-button">WO J2</button>
 </div>
         </template>
 
@@ -150,17 +141,24 @@ getVainqueurSets(match) {
 
   if (!match.scoreSets) return null;
 
-  match.scoreSets.forEach(set => {
-    if ((set.joueur1 >= 6 || set.joueur1 === 7) && set.joueur1 > set.joueur2) {
+  for (const set of match.scoreSets) {
+    // Cas de WO : joueur1 a WO → joueur2 gagne 2 sets automatiquement
+    if (set.joueur1 === 'WO') return 'joueur2';
+    if (set.joueur2 === 'WO') return 'joueur1';
+
+    const s1 = Number(set.joueur1);
+    const s2 = Number(set.joueur2);
+
+    if ((s1 >= 6 || s1 === 7) && s1 > s2) {
       joueur1Sets++;
-    } else if ((set.joueur2 >= 6 || set.joueur2 === 7) && set.joueur2 > set.joueur1) {
+    } else if ((s2 >= 6 || s2 === 7) && s2 > s1) {
       joueur2Sets++;
     }
-  });
+  }
 
   if (joueur1Sets >= 2 && joueur1Sets > joueur2Sets) return 'joueur1';
   if (joueur2Sets >= 2 && joueur2Sets > joueur1Sets) return 'joueur2';
-  return null; // Pas encore gagné ou égalité
+  return null;
 },
 async ajouterSet(match) {
   const token = localStorage.getItem('token');
@@ -207,15 +205,26 @@ async supprimerDernierSet(match) {
   }
 },
 
-mettreWO(match, joueurKey) {
-  match.wo = joueurKey;
-},
-
-async mettreWO(match, joueurKey) {
+async mettreWO(match, joueur) {
   const token = localStorage.getItem('token');
-  if (!token) {
-    alert('Vous devez être connecté pour modifier le match.');
+
+  // Vérifie qu'il y a au moins un set
+  if (!match.scoreSets || match.scoreSets.length === 0) {
+    console.warn("Aucun set à modifier.");
     return;
+  }
+
+  // Récupère le dernier set
+  const dernierSetIndex = match.scoreSets.length - 1;
+  const dernierSet = match.scoreSets[dernierSetIndex];
+
+  // Applique le WO au bon joueur
+  if (joueur === 'joueur1') {
+    dernierSet.joueur1 = 'WO';
+    dernierSet.joueur2 = 0;
+  } else {
+    dernierSet.joueur1 = 0;
+    dernierSet.joueur2 = 'WO';
   }
 
   try {
@@ -223,18 +232,19 @@ async mettreWO(match, joueurKey) {
       `https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${match.documentId}`,
       {
         data: {
-          wo: joueurKey
+          scoreSets: match.scoreSets
         }
       },
       {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       }
     );
-    match.wo = joueurKey;
-    alert(`Forfait appliqué à ${joueurKey}`);
+
+    this.$forceUpdate(); // force le rafraîchissement de la vue si nécessaire
   } catch (error) {
-    console.error('Erreur WO :', error.response);
-    alert("Erreur lors de l'enregistrement du WO");
+    console.error('Erreur lors de la mise à jour du WO :', error);
   }
 },
     async updateScore(match, setIndex, joueurKey, increment) {
@@ -540,30 +550,49 @@ ul {
   padding: 10px 0;
 }
 
-/* BOUTONS EDITION & SUPPRESSION */
+/* ────────────── CONTENEUR CRUD ────────────── */
+.crud-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin-top: 1em;
+}
+
+/* ────────────── BOUTONS GÉNÉRIQUES ────────────── */
 .crud-buttons a,
 .crud-buttons button {
-  display: inline-flex;       /* pour centrer l'icône verticalement */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  text-decoration: none;      /* enlève le soulignement des <a> */
-  border: none;
-  background: #eee;
-  color: #333;
   padding: 0.5em 0.6em;
   font-size: 1.2em;
+  border: none;
   border-radius: 4px;
+  background: #eee;
+  color: #333;
   cursor: pointer;
+  text-decoration: none; /* utile pour les <a> */
   transition: background 0.2s ease;
 }
 
-/* Hover effet */
+/* Hover générique */
 .crud-buttons a:hover,
 .crud-buttons button:hover {
   background: #ddd;
 }
 
-/* Exemple de couleur différente pour supprimer */
+/* ────────────── STYLES SPÉCIFIQUES PAR ACTION ────────────── */
+
+/* Édition */
+.crud-buttons .edit-button {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+.crud-buttons .edit-button:hover {
+  background: #bee5eb;
+}
+
+/* Suppression */
 .crud-buttons .delete-button {
   background: #f8d7da;
   color: #721c24;
@@ -572,15 +601,7 @@ ul {
   background: #f5c6cb;
 }
 
-/* Exemple de couleur différente pour éditer */
-.crud-buttons .edit-button {
-  background: #d1ecf1;
-  color: #0c5460;
-}
-.crud-buttons .edit-button:hover {
-  background: #bee5eb;
-}
-/* Bouton ajouter un set */
+/* Ajout de set */
 .crud-buttons .add-set-button {
   background: #d4edda;
   color: #155724;
@@ -589,7 +610,7 @@ ul {
   background: #c3e6cb;
 }
 
-/* Bouton supprimer un set */
+/* Suppression de set */
 .crud-buttons .remove-set-button {
   background: #fff3cd;
   color: #856404;
@@ -598,13 +619,13 @@ ul {
   background: #ffeeba;
 }
 
-/* Boutons WO joueur 1 et 2 */
+/* WO joueur */
 .crud-buttons .wo-button {
-  background: #fefefe;
-  color: #6c757d;
+  background: #e2e3e5;
+  color: #383d41;
 }
 .crud-buttons .wo-button:hover {
-  background: #e2e3e5;
+  background: #d6d8db;
 }
 .date-filter {
   display: flex;
