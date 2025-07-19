@@ -137,7 +137,44 @@ goToManage() {
     flex-direction: column;
     align-items: flex-start;
   }
+  @media (max-width: 950px) {
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .home-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+  .menu-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
 
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-link {
+    width: 100%;
+    text-align: left;
+    padding: 12px 20px;
+    border-radius: 0;
+    border-bottom: 1px solid #ccc;
+  }
+}
   .menu-toggle {
     width: 100%;
     display: flex;
