@@ -4,8 +4,8 @@
   <router-link to="/" class="home-link">
     <Logo />
   </router-link>
-
-  <nav class="nav-links">
+  <div class="menu-toggle" @click="toggleMenu">☰</div>
+  <nav :class="['nav-links', { open: showMenu }]">
     <div>
       <router-link to="/inscription" class="nav-link">Inscription Tennis</router-link>
     </div>
@@ -74,7 +74,7 @@ goToManage() {
 </script>
 <style>
 .container {
-  width: 100vw; /* largeur entière de la fenêtre */
+  width: 100%; /* largeur entière de la fenêtre */
   max-width: none; /* enlever max-width */
   margin: 0; /* enlever la marge auto */
   padding: 20px 30px 40px; /* garder le padding si besoin */
@@ -126,16 +126,43 @@ goToManage() {
   background-color: #219150;
   box-shadow: 0 4px 12px rgba(33,145,80,0.4);
 }
-
+.menu-toggle {
+  display: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #2c3e50;
+}
 @media (max-width: 950px) {
   .header-container {
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
   }
-  .nav-links{
+
+  .menu-toggle {
+    width: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-link {
+    width: 100%;
+    text-align: left;
+    padding: 12px 20px;
+    border-radius: 0;
+    border-bottom: 1px solid #ccc;
   }
 }
 </style>
