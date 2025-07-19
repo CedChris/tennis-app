@@ -85,16 +85,22 @@
           </div>
 
           <div v-if="isAuthenticated" class="crud-buttons">
-            <router-link
-              class="edit-button"
-              :to="{ name: 'EditMatch', params: { documentId: match.documentId } }"
-            >
-              ✏️
-            </router-link>
-            <button @click="deleteMatch(match.documentId)" class="delete-button">
-              🗑️
-            </button>
-          </div>
+  <router-link
+    class="edit-button"
+    :to="{ name: 'EditMatch', params: { documentId: match.documentId } }"
+  >
+    ✏️
+  </router-link>
+  <button @click="deleteMatch(match.documentId)" class="delete-button">
+    🗑️
+  </button>
+
+  <!-- Nouveaux boutons -->
+  <button @click="ajouterSet(match)" class="set-button">➕ Set</button>
+  <button @click="supprimerDernierSet(match)" class="set-button">➖ Set</button>
+  <button @click="mettreWO(match, 'joueur1')" class="wo-button">🚫 WO joueur 1</button>
+  <button @click="mettreWO(match, 'joueur2')" class="wo-button">🚫 WO joueur 2</button>
+</div>
         </template>
 
         <template v-else>
@@ -112,7 +118,7 @@ export default {
   data() {
     return {
       matches: [],
-      selectedDate: null,
+      selectedDate: new Date().toISOString().split('T')[0],
     }
   },
   computed: {
@@ -155,6 +161,81 @@ getVainqueurSets(match) {
   if (joueur1Sets >= 2 && joueur1Sets > joueur2Sets) return 'joueur1';
   if (joueur2Sets >= 2 && joueur2Sets > joueur1Sets) return 'joueur2';
   return null; // Pas encore gagné ou égalité
+},
+async ajouterSet(match) {
+  const token = localStorage.getItem('token');
+  match.scoreSets.push({ joueur1: 0, joueur2: 0 });
+  const API_URL = 'https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches';
+
+  try {
+    await axios.put(`${API_URL}/${match.documentId}`, {
+      data: {
+        scoreSets: match.scoreSets
+      }
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`, // à remplacer si nécessaire
+      }
+    });
+
+    console.log('Set ajouté et mis à jour dans Strapi');
+  } catch (error) {
+    console.error('Erreur lors de l’ajout du set :', error);
+  }
+},
+async supprimerDernierSet(match) {
+  if (match.scoreSets.length === 0) return;
+  const API_URL = 'https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches';
+  const token = localStorage.getItem('token');
+
+  match.scoreSets.pop();
+
+  try {
+    await axios.put(`${API_URL}/${match.documentId}`, {
+      data: {
+        scoreSets: match.scoreSets
+      }
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    });
+
+    console.log('Dernier set supprimé et mis à jour');
+  } catch (error) {
+    console.error('Erreur lors de la suppression du set :', error);
+  }
+},
+
+mettreWO(match, joueurKey) {
+  match.wo = joueurKey;
+},
+
+async mettreWO(match, joueurKey) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Vous devez être connecté pour modifier le match.');
+    return;
+  }
+
+  try {
+    await axios.put(
+      `https://ancient-purpose-79e6e65b06.strapiapp.com/api/matches/${match.documentId}`,
+      {
+        data: {
+          wo: joueurKey
+        }
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+    match.wo = joueurKey;
+    alert(`Forfait appliqué à ${joueurKey}`);
+  } catch (error) {
+    console.error('Erreur WO :', error.response);
+    alert("Erreur lors de l'enregistrement du WO");
+  }
 },
     async updateScore(match, setIndex, joueurKey, increment) {
       const token = localStorage.getItem('token');
@@ -498,6 +579,32 @@ ul {
 }
 .crud-buttons .edit-button:hover {
   background: #bee5eb;
+}
+/* Bouton ajouter un set */
+.crud-buttons .add-set-button {
+  background: #d4edda;
+  color: #155724;
+}
+.crud-buttons .add-set-button:hover {
+  background: #c3e6cb;
+}
+
+/* Bouton supprimer un set */
+.crud-buttons .remove-set-button {
+  background: #fff3cd;
+  color: #856404;
+}
+.crud-buttons .remove-set-button:hover {
+  background: #ffeeba;
+}
+
+/* Boutons WO joueur 1 et 2 */
+.crud-buttons .wo-button {
+  background: #fefefe;
+  color: #6c757d;
+}
+.crud-buttons .wo-button:hover {
+  background: #e2e3e5;
 }
 .date-filter {
   display: flex;
